@@ -137,7 +137,7 @@ function rebuildMenu(indicator, config, prayerTimesData, callbacks) {
 
     // 4. Settings window launcher
     indicator.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-    let openPrefsItem = new PopupMenu.PopupMenuItem('⚙ Open Settings / فتح الإعدادات');
+    let openPrefsItem = new PopupMenu.PopupMenuItem('⚙ Open Settings');
     openPrefsItem.connect('activate', () => {
         try {
             GLib.spawn_command_line_async('gnome-extensions prefs salat-timer@moroccan-habous');

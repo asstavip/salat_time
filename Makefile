@@ -20,8 +20,13 @@ install: check
 		gnome-extensions enable $(UUID) 2>/dev/null || true; \
 	fi
 	@echo "✔ Installation complete!"
-	@echo "  • On X11: Press Alt+F2, type 'r', and hit Enter."
-	@echo "  • On Wayland: Log out and log back in."
+	@if [ "$$XDG_SESSION_TYPE" = "wayland" ]; then \
+		echo "  • Detected Session: Wayland"; \
+		echo "  • Reload GNOME Shell: Log out and log back in to activate the extension."; \
+	else \
+		echo "  • Detected Session: X11"; \
+		echo "  • Reload GNOME Shell: Press Alt+F2, type 'r', and press Enter."; \
+	fi
 
 # Open Preferences Settings Window directly
 prefs:
