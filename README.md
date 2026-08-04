@@ -1,6 +1,6 @@
 # 🕌 Moroccan Salat & Iqama GNOME Extension
 
-A clean, lightweight, and modular GNOME Shell extension for Moroccan prayer times and Iqama countdowns, powered officially by the Moroccan Ministry of Awqaf & Islamic Affairs (Habous API).
+A clean, lightweight, and modular GNOME Shell extension for Moroccan prayer times and Iqama countdowns, written in **TypeScript** and powered officially by the Moroccan Ministry of Awqaf & Islamic Affairs (Habous API).
 
 ---
 
@@ -8,19 +8,22 @@ A clean, lightweight, and modular GNOME Shell extension for Moroccan prayer time
 
 ```
 salat-gnome-extension/
-├── Makefile             # Build, install, check & package commands
+├── Makefile             # Build, compile, install, check & package commands
 ├── install.sh           # Convenience installer script wrapper
+├── tsconfig.json        # TypeScript compiler configuration
 ├── README.md            # Documentation
-└── src/                 # Extension Source Directory
+├── dist/                # Compiled JavaScript output directory (generated on build)
+└── src/                 # Extension TypeScript Source Directory
     ├── metadata.json    # Extension metadata
-    ├── constants.js     # City list, default delays & icons
-    ├── i18n.js          # Internationalization (EN, AR, FR)
-    ├── config.js        # User config storage & file watching
-    ├── api.js           # Habous API network fetching
-    ├── calculator.js    # Prayer times & countdown calculations
-    ├── ui.js            # Panel text & interactive menu component
-    ├── extension.js     # Extension lifecycle entrypoint (init/enable/disable)
-    └── prefs.js         # GTK4 / Libadwaita Preferences window
+    ├── types.d.ts       # GJS & GNOME Shell ambient TypeScript definitions
+    ├── constants.ts     # City list, default delays & icons
+    ├── i18n.ts          # Internationalization (EN, AR, FR)
+    ├── config.ts        # User config storage & file watching
+    ├── api.ts           # Habous API network fetching
+    ├── calculator.ts    # Prayer times & countdown calculations
+    ├── ui.ts            # Panel text & interactive menu component
+    ├── extension.ts     # Extension lifecycle entrypoint (init/enable/disable)
+    └── prefs.ts         # GTK4 / Libadwaita Preferences window
 ```
 
 ---
@@ -29,17 +32,20 @@ salat-gnome-extension/
 
 | Command | Description |
 | :--- | :--- |
-| `make install` | Check syntax and install extension to `~/.local/share/gnome-shell/extensions/` |
+| `make compile` | Compile TypeScript (`src/*.ts`) into JavaScript (`dist/*.js`) |
+| `make install` | Compile TS, check syntax, and install extension to `~/.local/share/gnome-shell/extensions/` |
+| `make check` | Run JavaScript syntax check across all compiled modules |
+| `make prefs` | Open extension Preferences Settings window directly |
 | `make uninstall` | Disable and remove extension from system |
-| `make pack` | Create `.zip` bundle for GNOME Extensions submission |
-| `make check` | Run JavaScript syntax check across all source modules |
-| `make clean` | Remove `.zip` build artifacts |
+| `make pack` | Create `.zip` bundle from `dist/` for GNOME Extensions submission |
+| `make clean` | Remove `dist/` build artifacts |
+| `make re` | Clean, compile, check, and reinstall extension |
 
 ---
 
 ## 🚀 Installation & Usage
 
-1. **Install extension**:
+1. **Compile & Install extension**:
    ```bash
    make install
    ```

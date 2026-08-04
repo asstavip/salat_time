@@ -5,17 +5,32 @@
 UUID        := salat-timer@moroccan-habous
 EXT_DIR     := $(HOME)/.local/share/gnome-shell/extensions/$(UUID)
 SRC_DIR     := src
+DIST_DIR    := dist
 PACK_NAME   := $(UUID).shell-extension.zip
+TSC         := ./node_modules/.bin/tsc
 
-.PHONY: all build install uninstall prefs pack check logs clean help
+.PHONY: all compile build install uninstall prefs pack check logs clean help re
 
 all: check install
 
-# Install extension files directly to user's GNOME Shell extension directory
-install: check
-	@echo " Installing extension to $(EXT_DIR)..."
+# Compile TypeScript source code to JavaScript in dist/
+compile:
+	@echo " 🔨 Compiling TypeScript sources..."
+	@if [ -f "$(TSC)" ]; then \
+		$(TSC) ; \
+	else \
+		npx tsc ; \
+	fi
+	@cp -f $(SRC_DIR)/metadata.json $(DIST_DIR)/
+	@echo "✔ TypeScript compilation successful!"
+
+build: compile
+
+# Install compiled extension files directly to user's GNOME Shell extension directory
+install: compile check
+	@echo " 🚀 Installing extension to $(EXT_DIR)..."
 	@mkdir -p "$(EXT_DIR)"
-	@cp -r $(SRC_DIR)/* "$(EXT_DIR)/"
+	@cp -r $(DIST_DIR)/* "$(EXT_DIR)/"
 	@if command -v gnome-extensions > /dev/null 2>&1; then \
 		gnome-extensions enable $(UUID) 2>/dev/null || true; \
 	fi
@@ -30,12 +45,12 @@ install: check
 
 # Open Preferences Settings Window directly
 prefs:
-	@echo " Opening extension preferences settings window..."
+	@echo " ⚙ Opening extension preferences settings window..."
 	@gnome-extensions prefs $(UUID)
 
 # Disable and uninstall extension
 uninstall:
-	@echo " Uninstalling extension $(UUID)..."
+	@echo " 🗑 Uninstalling extension $(UUID)..."
 	@if command -v gnome-extensions > /dev/null 2>&1; then \
 		gnome-extensions disable $(UUID) 2>/dev/null || true; \
 	fi
@@ -43,51 +58,44 @@ uninstall:
 	@echo "✔ Extension uninstalled."
 
 # Package extension zip using gnome-extensions CLI
-pack: check
-	@echo " Packaging $(PACK_NAME)..."
+pack: compile check
+	@echo " 📦 Packaging $(PACK_NAME)..."
 	@if command -v gnome-extensions > /dev/null 2>&1; then \
-		gnome-extensions pack $(SRC_DIR) --force --out-dir=. ; \
+		gnome-extensions pack $(DIST_DIR) --force --out-dir=. ; \
 	else \
-		cd $(SRC_DIR) && zip -r "../$(PACK_NAME)" . ; \
+		cd $(DIST_DIR) && zip -r "../$(PACK_NAME)" . ; \
 	fi
 	@echo "✔ Package created: $(PACK_NAME)"
 
-# Check JavaScript syntax across all source files using node
-check:
-	@echo " Checking JS syntax..."
-	@node -c $(SRC_DIR)/constants.js
-	@node -c $(SRC_DIR)/i18n.js
-	@node -c $(SRC_DIR)/config.js
-	@node -c $(SRC_DIR)/api.js
-	@node -c $(SRC_DIR)/calculator.js
-	@node -c $(SRC_DIR)/ui.js
-	@node -c $(SRC_DIR)/extension.js
-	@node -c $(SRC_DIR)/prefs.js
-	@echo "✔ All JS files passed syntax check!"
+# Check JavaScript syntax across all compiled source files using node
+check: compile
+	@echo " 🔍 Checking compiled JS syntax..."
+	@for f in $(DIST_DIR)/*.js; do \
+		node -c "$$f" || exit 1; \
+	done
+	@echo "✔ All compiled JS files passed syntax check!"
 
 # Display live extension logs from systemd journalctl
 logs:
-	@echo " Tailing live SalatExtension logs (Ctrl+C to stop)..."
+	@echo " 📜 Tailing live SalatExtension logs (Ctrl+C to stop)..."
 	@journalctl -f -o cat /usr/bin/gnome-shell | grep --line-buffered -i "SalatExtension"
 
 # Clean build artifacts
 clean:
-	@rm -f *.zip
+	@rm -rf $(DIST_DIR) *.zip
 	@echo "✔ Cleaned build artifacts."
 
 help:
 	@echo "Available Makefile targets:"
-	@echo "  make install    - Install extension to ~/.local/share/gnome-shell/extensions/"
+	@echo "  make compile    - Compile TypeScript source files to dist/"
+	@echo "  make install    - Compile & install extension to ~/.local/share/gnome-shell/extensions/"
 	@echo "  make prefs      - Open extension Preferences Settings Window directly"
 	@echo "  make uninstall  - Disable and remove extension"
-	@echo "  make pack       - Package extension into a .zip file"
-	@echo "  make check      - Verify JavaScript syntax"
+	@echo "  make pack       - Package extension into a .zip file from dist/"
+	@echo "  make check      - Compile TS & verify compiled JavaScript syntax"
 	@echo "  make logs       - Tail live GNOME Shell extension logs"
 	@echo "  make clean      - Remove build artifacts"
-	@echo "  make re        - Rebuild the extension"
-re:
-	@echo "  make re        - Rebuild the extension"
-	@make clean
-	@make check
-	@make install
-	@echo "✔ Rebuilt extension."
+	@echo "  make re         - Clean, compile, check and reinstall extension"
+
+re: clean compile check install
+	@echo "✔ Rebuilt and reinstalled extension."
