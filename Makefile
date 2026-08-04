@@ -79,3 +79,10 @@ help:
 	@echo "  make check      - Verify JavaScript syntax"
 	@echo "  make logs       - Tail live GNOME Shell extension logs"
 	@echo "  make clean      - Remove build artifacts"
+	@echo "  make re        - Rebuild the extension"
+re:
+	@echo "  make re        - Rebuild the extension"
+	@make clean
+	@make check
+	@make install
+	@echo "✔ Rebuilt extension."

@@ -69,17 +69,8 @@ function rebuildMenu(indicator, config, prayerTimesData, callbacks) {
 
     indicator.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-    // 3. City selector
-    let citySubMenu = new PopupMenu.PopupSubMenuMenuItem(I18n.t('select_city', config.lang));
-    for (let city of Constants.CITIES) {
-        let cityItem = new PopupMenu.PopupMenuItem((city.id === config.city.id ? '✔ ' : '   ') + city.name);
-        cityItem.connect('activate', () => callbacks.onSelectCity(city));
-        citySubMenu.menu.addMenuItem(cityItem);
-    }
-    indicator.menu.addMenuItem(citySubMenu);
 
-    // 4. Custom Iqama Delays Submenu (with Clutter event trapping so clicking never collapses menu)
-    let iqamaSubMenu = new PopupMenu.PopupSubMenuMenuItem(I18n.t('custom_iqama', config.lang));
+    // 3. Custom Iqama Delays Submenu (with Clutter event trapping so clicking never collapses menu)
 
     const presetOptions = {
         Fajr: [10, 15, 20, 25, 30],
@@ -135,31 +126,16 @@ function rebuildMenu(indicator, config, prayerTimesData, callbacks) {
             optItem.connect('button-release-event', () => Clutter.EVENT_STOP);
             prayerSubMenu.menu.addMenuItem(optItem);
         }
-
-        iqamaSubMenu.menu.addMenuItem(prayerSubMenu);
     }
 
-    iqamaSubMenu.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
     let resetItem = new PopupMenu.PopupMenuItem(I18n.t('reset_defaults', config.lang));
     resetItem.connect('button-press-event', () => {
         callbacks.onResetIqamaDefaults();
         return Clutter.EVENT_STOP;
     });
     resetItem.connect('button-release-event', () => Clutter.EVENT_STOP);
-    iqamaSubMenu.menu.addMenuItem(resetItem);
 
-    indicator.menu.addMenuItem(iqamaSubMenu);
-
-    // 5. Language selector
-    let langSubMenu = new PopupMenu.PopupSubMenuMenuItem(I18n.t('select_lang', config.lang));
-    for (let langObj of I18n.LANGUAGES) {
-        let langItem = new PopupMenu.PopupMenuItem((langObj.code === config.lang ? '✔ ' : '   ') + langObj.name);
-        langItem.connect('activate', () => callbacks.onSelectLang(langObj.code));
-        langSubMenu.menu.addMenuItem(langItem);
-    }
-    indicator.menu.addMenuItem(langSubMenu);
-
-    // 6. Settings window launcher
+    // 4. Settings window launcher
     indicator.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
     let openPrefsItem = new PopupMenu.PopupMenuItem('⚙ Open Settings / فتح الإعدادات');
     openPrefsItem.connect('activate', () => {
