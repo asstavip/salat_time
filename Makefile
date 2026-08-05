@@ -21,6 +21,7 @@ compile-legacy:
 	@echo " 🔨 Compiling Legacy TypeScript sources (GNOME 42-44)..."
 	@mkdir -p $(DIST_DIR)/legacy
 	@$(TSC) -p tsconfig.legacy.json
+	@$(TSC) -p tsconfig.legacy.prefs.json
 	@cp -f src/legacy/metadata.json $(DIST_DIR)/legacy/
 	@echo "✔ Legacy compilation successful!"
 
@@ -65,9 +66,8 @@ install: compile check
 		echo "  • Reload GNOME Shell: Log out and log back in to activate the extension."; \
 	else \
 		echo "  • Detected Session: X11"; \
-		echo "  • Reload GNOME Shell: Run 'kill -HUP $$(pgrep gnome-shell | xargs)'"; \
+		echo "  • Reload GNOME Shell: Run 'kill -HUP $$(pgrep gnome-shell | xargs)' to reload."; \
 	fi
-
 
 # Open Preferences Settings Window directly
 prefs:

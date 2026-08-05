@@ -131,7 +131,7 @@ function recreatePanelIndicator(): void {
     }
 }
 
-function init(): void {
+function init(metadata?: any): void {
     log('[SalatExtension] Initializing extension...');
     const { Api: ApiMod } = _getExtensionModules();
     httpSession = ApiMod.createSession();

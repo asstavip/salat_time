@@ -11,12 +11,9 @@
   },
   "include": [
     "src/legacy/types.d.ts",
-    "src/legacy/api.ts",
-    "src/legacy/calculator.ts",
     "src/legacy/config.ts",
     "src/legacy/constants.ts",
-    "src/legacy/extension.ts",
     "src/legacy/i18n.ts",
-    "src/legacy/ui.ts"
+    "src/legacy/prefs.ts"
   ]
 }

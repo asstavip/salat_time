@@ -10,18 +10,13 @@ import * as I18n from './i18n.js';
 export default class SalatPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window: any): void {
         let config: UserConfig = Config.loadConfig();
-        let currentLang = config.lang || 'auto';
 
         let prefsPage = new Adw.PreferencesPage();
 
         // 1. General Settings Group (City & Language)
-        let generalGroup = new Adw.PreferencesGroup({
-            title: I18n.t('prefs_general_title', currentLang),
-            description: I18n.t('prefs_general_desc', currentLang)
-        });
+        let generalGroup = new Adw.PreferencesGroup();
 
         let cityRow = new Adw.ComboRow({
-            title: I18n.t('prefs_city_title', currentLang),
             model: Gtk.StringList.new(Constants.CITIES.map((c: City) => c.name)),
             selected: Math.max(0, Constants.CITIES.findIndex((c: City) => c.id === config.city.id))
         });
@@ -35,36 +30,27 @@ export default class SalatPreferences extends ExtensionPreferences {
         generalGroup.add(cityRow);
 
         let langRow = new Adw.ComboRow({
-            title: I18n.t('prefs_lang_title', currentLang),
             model: Gtk.StringList.new(I18n.LANGUAGES.map((l: LanguageOption) => l.name)),
             selected: Math.max(0, I18n.LANGUAGES.findIndex((l: LanguageOption) => l.code === config.lang))
-        });
-        langRow.connect('notify::selected', (widget: any) => {
-            let idx = widget.get_selected();
-            if (idx >= 0 && idx < I18n.LANGUAGES.length) {
-                config.lang = I18n.LANGUAGES[idx].code;
-                Config.saveConfig(config);
-            }
         });
         generalGroup.add(langRow);
 
         prefsPage.add(generalGroup);
 
         // 2. Iqama Delays Group
-        let iqamaGroup = new Adw.PreferencesGroup({
-            title: I18n.t('prefs_iqama_title', currentLang),
-            description: I18n.t('prefs_iqama_desc', currentLang)
-        });
+        let iqamaGroup = new Adw.PreferencesGroup();
 
-        const prayers = [
-            { key: 'Fajr', name: I18n.t('fajr', currentLang), defaultVal: Constants.DEFAULT_IQAMA_DELAYS.Fajr },
-            { key: 'Dhuhr', name: I18n.t('dhuhr', currentLang), defaultVal: Constants.DEFAULT_IQAMA_DELAYS.Dhuhr },
-            { key: 'Asr', name: I18n.t('asr', currentLang), defaultVal: Constants.DEFAULT_IQAMA_DELAYS.Asr },
-            { key: 'Maghrib', name: I18n.t('maghrib', currentLang), defaultVal: Constants.DEFAULT_IQAMA_DELAYS.Maghrib },
-            { key: 'Ishae', name: I18n.t('isha', currentLang), defaultVal: Constants.DEFAULT_IQAMA_DELAYS.Ishae }
+        const prayerDefs = [
+            { key: 'Fajr', i18nKey: 'fajr', defaultVal: Constants.DEFAULT_IQAMA_DELAYS.Fajr },
+            { key: 'Dhuhr', i18nKey: 'dhuhr', defaultVal: Constants.DEFAULT_IQAMA_DELAYS.Dhuhr },
+            { key: 'Asr', i18nKey: 'asr', defaultVal: Constants.DEFAULT_IQAMA_DELAYS.Asr },
+            { key: 'Maghrib', i18nKey: 'maghrib', defaultVal: Constants.DEFAULT_IQAMA_DELAYS.Maghrib },
+            { key: 'Ishae', i18nKey: 'isha', defaultVal: Constants.DEFAULT_IQAMA_DELAYS.Ishae }
         ];
 
-        prayers.forEach(p => {
+        let prayerRows: { def: any; row: any }[] = [];
+
+        prayerDefs.forEach(p => {
             let currentVal = config.iqamaDelays[p.key] || p.defaultVal;
             let adjustment = new Gtk.Adjustment({
                 value: currentVal, lower: 1, upper: 60,
@@ -74,7 +60,6 @@ export default class SalatPreferences extends ExtensionPreferences {
             let row: any;
             if (Adw.SpinRow) {
                 row = new Adw.SpinRow({
-                    title: p.name,
                     subtitle: `Default: +${p.defaultVal}m`,
                     adjustment: adjustment,
                     value: currentVal
@@ -88,7 +73,6 @@ export default class SalatPreferences extends ExtensionPreferences {
                 });
             } else {
                 row = new Adw.ActionRow({
-                    title: p.name,
                     subtitle: `Default: +${p.defaultVal}m`
                 });
                 let spin = Gtk.SpinButton.new(adjustment, 1, 0);
@@ -106,21 +90,17 @@ export default class SalatPreferences extends ExtensionPreferences {
             }
 
             iqamaGroup.add(row);
+            prayerRows.push({ def: p, row: row });
         });
 
         prefsPage.add(iqamaGroup);
 
         // 3. Save & Apply Actions Group
-        let actionsGroup = new Adw.PreferencesGroup({
-            title: I18n.t('prefs_actions_title', currentLang)
-        });
+        let actionsGroup = new Adw.PreferencesGroup();
 
-        let actionRow = new Adw.ActionRow({
-            title: I18n.t('prefs_actions_title', currentLang)
-        });
+        let actionRow = new Adw.ActionRow();
 
         let saveButton = new Gtk.Button({
-            label: I18n.t('prefs_save_button', currentLang),
             valign: Gtk.Align.CENTER
         });
 
@@ -133,7 +113,7 @@ export default class SalatPreferences extends ExtensionPreferences {
         saveButton.connect('clicked', () => {
             log('[SalatExtension Prefs] Manual Save & Apply clicked.');
             Config.saveConfig(config);
-            statusLabel.set_text(I18n.t('prefs_saved_success', currentLang));
+            statusLabel.set_text(I18n.t('prefs_saved_success', config.lang));
         });
 
         actionRow.add_suffix(statusLabel);
@@ -141,6 +121,41 @@ export default class SalatPreferences extends ExtensionPreferences {
         actionsGroup.add(actionRow);
 
         prefsPage.add(actionsGroup);
+
+        // Dynamic UI Text Refresh Helper
+        const updatePrefsText = () => {
+            let lang = config.lang || 'auto';
+            generalGroup.set_title(I18n.t('prefs_general_title', lang));
+            generalGroup.set_description(I18n.t('prefs_general_desc', lang));
+            cityRow.set_title(I18n.t('prefs_city_title', lang));
+            langRow.set_title(I18n.t('prefs_lang_title', lang));
+
+            iqamaGroup.set_title(I18n.t('prefs_iqama_title', lang));
+            iqamaGroup.set_description(I18n.t('prefs_iqama_desc', lang));
+
+            prayerRows.forEach(item => {
+                item.row.set_title(I18n.t(item.def.i18nKey, lang));
+            });
+
+            actionsGroup.set_title(I18n.t('prefs_actions_title', lang));
+            actionRow.set_title(I18n.t('prefs_actions_title', lang));
+            saveButton.set_label(I18n.t('prefs_save_button', lang));
+            if (statusLabel.get_text() !== '') {
+                statusLabel.set_text(I18n.t('prefs_saved_success', lang));
+            }
+        };
+
+        langRow.connect('notify::selected', (widget: any) => {
+            let idx = widget.get_selected();
+            if (idx >= 0 && idx < I18n.LANGUAGES.length) {
+                config.lang = I18n.LANGUAGES[idx].code;
+                Config.saveConfig(config);
+                updatePrefsText();
+            }
+        });
+
+        // Initial translation pass
+        updatePrefsText();
 
         window.add(prefsPage);
     }
