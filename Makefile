@@ -48,8 +48,12 @@ compile:
 
 build: compile
 
-# Install dynamically compiled version matching host GNOME version
-install: compile check
+# Install JavaScript extension matching host GNOME version (does not depend on TypeScript)
+install: check
+	@if [ ! -d "$(DIST_DIR)" ]; then \
+		echo "❌ Error: '$(DIST_DIR)' directory not found. Please run 'make compile' first if compiling from source."; \
+		exit 1; \
+	fi
 	@echo " 🚀 Installing extension to $(EXT_DIR)..."
 	@mkdir -p "$(EXT_DIR)"
 	@if [ $(GNOME_VER) -ge 45 ]; then \
@@ -57,10 +61,18 @@ install: compile check
 	else \
 		cp -r $(DIST_DIR)/legacy/* "$(EXT_DIR)/" ; \
 	fi
+	@echo " 🔌 Explicitly enabling extension..."
 	@if command -v gnome-extensions > /dev/null 2>&1; then \
 		gnome-extensions enable $(UUID) 2>/dev/null || true; \
 	fi
+	@echo " 🔍 Verifying extension status..."
+	@if command -v gnome-extensions > /dev/null 2>&1; then \
+		gnome-extensions info $(UUID) 2>/dev/null || true; \
+	fi
 	@echo "✔ Installation complete for GNOME $(GNOME_VER)!"
+	@echo ""
+	@echo "📌 Note: The prayer timer appears in the top-right GNOME panel. It does not create an icon on the desktop."
+	@echo ""
 	@if [ "$$XDG_SESSION_TYPE" = "wayland" ]; then \
 		echo "  • Detected Session: Wayland"; \
 		echo "  • Reload GNOME Shell: Log out and log back in to activate the extension."; \
@@ -68,6 +80,14 @@ install: compile check
 		echo "  • Detected Session: X11"; \
 		echo "  • Reload GNOME Shell: Run 'kill -HUP $$(pgrep gnome-shell | xargs)' to reload."; \
 	fi
+	@echo ""
+	@echo "🔧 Troubleshooting: Installed but Not Visible"
+	@echo "  If reloading GNOME Shell does not make the timer appear, check whether it is enabled:"
+	@echo "    gsettings get org.gnome.shell enabled-extensions"
+	@echo "  The returned list must contain:"
+	@echo "    '$(UUID)'"
+	@echo "  If gnome-extensions info reports State: INITIALIZED, GNOME recognizes the extension but has not enabled it. Run:"
+	@echo "    gnome-extensions enable $(UUID)"
 
 # Open Preferences Settings Window directly
 prefs:
@@ -99,15 +119,17 @@ pack: compile-all check
 	@echo "✔ Created $(UUID).esm.zip (GNOME 45+)"
 
 # Check JavaScript syntax across compiled source files
-check: compile-all
-	@echo " 🔍 Checking compiled JS syntax for Legacy & ESM..."
-	@for f in $(DIST_DIR)/legacy/*.js; do \
-		[ -f "$$f" ] && node -c "$$f" || exit 1; \
-	done
-	@for f in $(DIST_DIR)/esm/*.js; do \
-		[ -f "$$f" ] && node --input-type=module -c "$$(cat $$f)" > /dev/null 2>&1 || true; \
-	done
-	@echo "✔ All compiled JS files passed syntax check!"
+check:
+	@if [ -d "$(DIST_DIR)" ]; then \
+		echo " 🔍 Checking compiled JS syntax for Legacy & ESM..."; \
+		for f in $(DIST_DIR)/legacy/*.js; do \
+			[ -f "$$f" ] && node -c "$$f" || exit 1; \
+		done; \
+		for f in $(DIST_DIR)/esm/*.js; do \
+			[ -f "$$f" ] && node --input-type=module -c "$$(cat $$f)" > /dev/null 2>&1 || true; \
+		done; \
+		echo "✔ All compiled JS files passed syntax check!"; \
+	fi
 
 # Display live extension logs from systemd journalctl
 logs:
@@ -121,9 +143,9 @@ clean:
 
 help:
 	@echo "Available Makefile targets:"
-	@echo "  make compile       - Auto-detect GNOME version & compile matching JS"
+	@echo "  make install       - Auto-detect GNOME version & install JavaScript extension to ~/.local/share/gnome-shell/extensions/"
+	@echo "  make compile       - Auto-detect GNOME version & compile TS to JS"
 	@echo "  make compile-all   - Compile both Legacy (GNOME 42-44) and ESM (GNOME 45+)"
-	@echo "  make install       - Auto-detect GNOME version & install to ~/.local/share/gnome-shell/extensions/"
 	@echo "  make pack          - Package separate .zip files for Legacy and ESM"
 	@echo "  make check         - Verify syntax across both Legacy and ESM builds"
 	@echo "  make prefs         - Open extension Preferences window"
