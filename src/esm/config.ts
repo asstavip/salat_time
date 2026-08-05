@@ -1,15 +1,9 @@
 /// <reference path="./types.d.ts" />
+import GLib from 'gi://GLib';
+import Gio from 'gi://Gio';
+import * as Constants from './constants.js';
 
-var { GLib, Gio } = imports.gi;
-var ExtensionUtils = imports.misc.extensionUtils;
-
-function _getConfigConstantsModule(): any {
-    const Me = ExtensionUtils.getCurrentExtension();
-    return Me.imports.constants;
-}
-
-function loadConfig(): UserConfig {
-    const Constants = _getConfigConstantsModule();
+export function loadConfig(): UserConfig {
     let config: UserConfig = {
         city: Constants.CITIES[0],
         lang: 'auto',
@@ -40,8 +34,7 @@ function loadConfig(): UserConfig {
     return config;
 }
 
-function saveConfig(config: UserConfig): void {
-    const Constants = _getConfigConstantsModule();
+export function saveConfig(config: UserConfig): void {
     try {
         if (!GLib.file_test(Constants.CONFIG_DIR, GLib.FileTest.EXISTS)) {
             GLib.mkdir_with_parents(Constants.CONFIG_DIR, 0o755);
@@ -59,8 +52,7 @@ function saveConfig(config: UserConfig): void {
     }
 }
 
-function setupConfigMonitor(onConfigChanged: () => void): any {
-    const Constants = _getConfigConstantsModule();
+export function setupConfigMonitor(onConfigChanged: () => void): any {
     try {
         if (!GLib.file_test(Constants.CONFIG_DIR, GLib.FileTest.EXISTS)) {
             GLib.mkdir_with_parents(Constants.CONFIG_DIR, 0o755);

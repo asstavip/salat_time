@@ -1,12 +1,12 @@
 /// <reference path="./types.d.ts" />
+import GLib from 'gi://GLib';
+import Soup from 'gi://Soup';
 
-var { GLib, Soup } = imports.gi;
-
-function createSession(): any {
+export function createSession(): any {
     return new Soup.Session();
 }
 
-function fetchPrayerTimes(
+export function fetchPrayerTimes(
     session: any,
     cityId: number,
     onSuccess: (data: PrayerTimesData) => void,

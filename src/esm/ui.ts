@@ -1,21 +1,12 @@
 /// <reference path="./types.d.ts" />
+import GLib from 'gi://GLib';
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
+import * as Constants from './constants.js';
+import * as I18n from './i18n.js';
+import * as Calculator from './calculator.js';
 
-var GLib = imports.gi.GLib;
-var PopupMenu = imports.ui.popupMenu;
-var ExtensionUtils = imports.misc.extensionUtils;
-
-function _getUIModules(): any {
-    const Me = ExtensionUtils.getCurrentExtension();
-    return {
-        Constants: Me.imports.constants,
-        I18n: Me.imports.i18n,
-        Calculator: Me.imports.calculator
-    };
-}
-
-function updatePanelText(indicator: any, prayerTimesData: PrayerTimesData | null, iqamaDelays: IqamaDelays, currentLang: string): void {
+export function updatePanelText(indicator: any, prayerTimesData: PrayerTimesData | null, iqamaDelays: IqamaDelays, currentLang: string): void {
     if (!prayerTimesData || !indicator) return;
-    const { I18n, Calculator } = _getUIModules();
 
     const now = new Date();
     const prayers = Calculator.getPrayerEntries(prayerTimesData, iqamaDelays, currentLang, now);
@@ -37,9 +28,8 @@ function updatePanelText(indicator: any, prayerTimesData: PrayerTimesData | null
     }
 }
 
-function rebuildMenu(indicator: any, config: UserConfig, prayerTimesData: PrayerTimesData | null, callbacks: any): void {
+export function rebuildMenu(indicator: any, config: UserConfig, prayerTimesData: PrayerTimesData | null, callbacks: any): void {
     if (!prayerTimesData || !indicator) return;
-    const { I18n, Calculator } = _getUIModules();
 
     const now = new Date();
     const prayers: PrayerEntry[] = Calculator.getPrayerEntries(prayerTimesData, config.iqamaDelays, config.lang, now);

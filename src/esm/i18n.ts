@@ -1,15 +1,14 @@
 /// <reference path="./types.d.ts" />
+import GLib from 'gi://GLib';
 
-var GLib = imports.gi.GLib;
-
-var LANGUAGES: LanguageOption[] = [
+export const LANGUAGES: LanguageOption[] = [
   { code: "auto", name: "Auto (System Language)" },
   { code: "en", name: "English" },
   { code: "ar", name: "العربية (Arabic)" },
   { code: "fr", name: "Français (French)" },
 ];
 
-var TRANSLATIONS: TranslationsMap = {
+export const TRANSLATIONS: TranslationsMap = {
   en: {
     loading: "🕌 Loading Salat...",
     adhan_in: "🕌 {prayer} in {time}",
@@ -87,7 +86,7 @@ var TRANSLATIONS: TranslationsMap = {
   },
 };
 
-function getSystemLang(): string {
+export function getSystemLang(): string {
   try {
     let locales = GLib.get_language_names();
     for (let loc of locales) {
@@ -99,12 +98,12 @@ function getSystemLang(): string {
   return "en";
 }
 
-function resolveLang(langCode?: string): string {
+export function resolveLang(langCode?: string): string {
   if (!langCode || langCode === "auto") return getSystemLang();
   return TRANSLATIONS[langCode] ? langCode : "en";
 }
 
-function t(key: string, langCode: string = "auto", params: Record<string, any> = {}): string {
+export function t(key: string, langCode: string = "auto", params: Record<string, any> = {}): string {
   let dict = TRANSLATIONS[resolveLang(langCode)] || TRANSLATIONS["en"];
   let str = dict[key] || TRANSLATIONS["en"][key] || key;
   for (let p in params) {

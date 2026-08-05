@@ -1,11 +1,10 @@
 /// <reference path="./types.d.ts" />
+import GLib from 'gi://GLib';
 
-var GLib = imports.gi.GLib;
+export const CONFIG_DIR: string = GLib.get_user_config_dir() + '/salat-gnome-extension';
+export const CONFIG_FILE: string = CONFIG_DIR + '/config.json';
 
-var CONFIG_DIR: string = GLib.get_user_config_dir() + '/salat-gnome-extension';
-var CONFIG_FILE: string = CONFIG_DIR + '/config.json';
-
-var CITIES: City[] = [
+export const CITIES: City[] = [
     { id: 1, name: 'Rabat / Salé / Sala Al Jadida' },
     { id: 5, name: 'Casablanca' },
     { id: 10, name: 'Marrakech' },
@@ -25,7 +24,7 @@ var CITIES: City[] = [
     { id: 30, name: 'Laâyoune' }
 ];
 
-var DEFAULT_IQAMA_DELAYS: IqamaDelays = {
+export const DEFAULT_IQAMA_DELAYS: IqamaDelays = {
     Fajr: 20,
     Dhuhr: 15,
     Asr: 15,
@@ -33,7 +32,7 @@ var DEFAULT_IQAMA_DELAYS: IqamaDelays = {
     Ishae: 15
 };
 
-var PRAYER_EMOJIS: Record<string, string> = {
+export const PRAYER_EMOJIS: Record<string, string> = {
     Fajr: '🌅',
     Dhuhr: '☀️',
     Asr: '🌤',
