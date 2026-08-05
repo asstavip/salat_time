@@ -65,8 +65,9 @@ install: compile check
 		echo "  • Reload GNOME Shell: Log out and log back in to activate the extension."; \
 	else \
 		echo "  • Detected Session: X11"; \
-		echo "  • Reload GNOME Shell: Run 'kill -HUP $$(pgrep gnome-shell)' to reload."; \
+		echo "  • Reload GNOME Shell: Run 'kill -HUP $$(pgrep gnome-shell | xargs)'"; \
 	fi
+
 
 # Open Preferences Settings Window directly
 prefs:
