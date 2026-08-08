@@ -14,7 +14,7 @@ GNOME_VER     := $(if $(GNOME_VER_RAW),$(GNOME_VER_RAW),42)
 
 .PHONY: all compile compile-legacy compile-esm compile-all build install uninstall prefs pack check logs clean help re
 
-all: check install
+all: install
 
 # Compile Legacy TS sources for GNOME 42-44
 compile-legacy:
@@ -48,13 +48,13 @@ compile:
 
 build: compile
 
-# Install JavaScript extension matching host GNOME version (does not depend on TypeScript)
-install: check
+# Install JavaScript extension matching host GNOME version (installs pre-built app from dist/)
+install:
 	@if [ ! -d "$(DIST_DIR)" ]; then \
-		echo "❌ Error: '$(DIST_DIR)' directory not found. Please run 'make compile' first if compiling from source."; \
+		echo "❌ Error: '$(DIST_DIR)' directory not found. Please ensure '$(DIST_DIR)' exists."; \
 		exit 1; \
 	fi
-	@echo " 🚀 Installing extension to $(EXT_DIR)..."
+	@echo " 🚀 Installing extension from dist/ to $(EXT_DIR)..."
 	@mkdir -p "$(EXT_DIR)"
 	@if [ $(GNOME_VER) -ge 45 ]; then \
 		cp -r $(DIST_DIR)/esm/* "$(EXT_DIR)/" ; \
@@ -65,29 +65,16 @@ install: check
 	@if command -v gnome-extensions > /dev/null 2>&1; then \
 		gnome-extensions enable $(UUID) 2>/dev/null || true; \
 	fi
+	@echo " 🔄 Automatically reloading GNOME Shell (killing PID)..."
+	@if pgrep gnome-shell > /dev/null 2>&1; then \
+		kill -HUP $$(pgrep gnome-shell | xargs) 2>/dev/null || true; \
+		echo "✔ GNOME Shell reload signal sent."; \
+	fi
 	@echo " 🔍 Verifying extension status..."
 	@if command -v gnome-extensions > /dev/null 2>&1; then \
 		gnome-extensions info $(UUID) 2>/dev/null || true; \
 	fi
-	@echo "✔ Installation complete for GNOME $(GNOME_VER)!"
-	@echo ""
-	@echo "📌 Note: The prayer timer appears in the top-right GNOME panel. It does not create an icon on the desktop."
-	@echo ""
-	@if [ "$$XDG_SESSION_TYPE" = "wayland" ]; then \
-		echo "  • Detected Session: Wayland"; \
-		echo "  • Reload GNOME Shell: Log out and log back in to activate the extension."; \
-	else \
-		echo "  • Detected Session: X11"; \
-		echo "  • Reload GNOME Shell: Run 'kill -HUP $$(pgrep gnome-shell | xargs)' to reload."; \
-	fi
-	@echo ""
-	@echo "🔧 Troubleshooting: Installed but Not Visible"
-	@echo "  If reloading GNOME Shell does not make the timer appear, check whether it is enabled:"
-	@echo "    gsettings get org.gnome.shell enabled-extensions"
-	@echo "  The returned list must contain:"
-	@echo "    '$(UUID)'"
-	@echo "  If gnome-extensions info reports State: INITIALIZED, GNOME recognizes the extension but has not enabled it. Run:"
-	@echo "    gnome-extensions enable $(UUID)"
+	@echo "✔ Installation and automated setup complete for GNOME $(GNOME_VER)!"
 
 # Open Preferences Settings Window directly
 prefs:
@@ -143,8 +130,8 @@ clean:
 
 help:
 	@echo "Available Makefile targets:"
-	@echo "  make install       - Auto-detect GNOME version & install JavaScript extension to ~/.local/share/gnome-shell/extensions/"
-	@echo "  make compile       - Auto-detect GNOME version & compile TS to JS"
+	@echo "  make install       - Install pre-built extension from dist/, auto-enable, and restart GNOME Shell"
+	@echo "  make compile       - Auto-detect GNOME version & compile TS to JS (for developers)"
 	@echo "  make compile-all   - Compile both Legacy (GNOME 42-44) and ESM (GNOME 45+)"
 	@echo "  make pack          - Package separate .zip files for Legacy and ESM"
 	@echo "  make check         - Verify syntax across both Legacy and ESM builds"
