@@ -25,10 +25,10 @@ export const CITIES: City[] = [
 ];
 
 export const DEFAULT_IQAMA_DELAYS: IqamaDelays = {
-    Fajr: 20,
+    Fajr: 30,
     Dhuhr: 15,
     Asr: 15,
-    Maghrib: 5,
+    Maghrib: 10,
     Ishae: 15
 };
 
