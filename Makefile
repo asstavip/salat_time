@@ -6,15 +6,30 @@
 UUID          := salat-timer@moroccan-habous
 EXT_DIR       := $(HOME)/.local/share/gnome-shell/extensions/$(UUID)
 DIST_DIR      := dist
-TSC           := ./node_modules/.bin/tsc
+TSC           := $(shell if [ -f ./node_modules/.bin/tsc ]; then echo ./node_modules/.bin/tsc; elif command -v tsc >/dev/null 2>&1; then command -v tsc; else echo "npx tsc"; fi)
 
 # Detect host system GNOME major version (e.g., 42, 45, 46)
 GNOME_VER_RAW := $(shell gnome-shell --version 2>/dev/null | grep -oE '[0-9]+' | head -n 1)
 GNOME_VER     := $(if $(GNOME_VER_RAW),$(GNOME_VER_RAW),42)
 
-.PHONY: all compile compile-legacy compile-esm compile-all build install uninstall prefs pack check logs clean help re
+.PHONY: all compile compile-legacy compile-esm compile-all build install run nested uninstall prefs pack check logs clean help re
 
 all: install
+
+# Run target: compiles, installs, toggles extension enable/disable for live refresh
+run: compile install
+	@echo " 🚀 Extension ready and enabled!"
+
+# Run in a nested Wayland GNOME Shell window (ideal for Wayland extension dev/testing)
+nested: compile
+	@echo " 🚀 Installing and launching nested GNOME Shell instance on Wayland..."
+	@mkdir -p "$(EXT_DIR)"
+	@if [ $(GNOME_VER) -ge 45 ]; then \
+		cp -r $(DIST_DIR)/esm/* "$(EXT_DIR)/" ; \
+	else \
+		cp -r $(DIST_DIR)/legacy/* "$(EXT_DIR)/" ; \
+	fi
+	@dbus-run-session gnome-shell --nested --wayland
 
 # Compile Legacy TS sources for GNOME 42-44
 compile-legacy:
@@ -48,10 +63,10 @@ compile:
 
 build: compile
 
-# Install JavaScript extension matching host GNOME version (installs pre-built app from dist/)
+# Install JavaScript extension matching host GNOME version
 install:
 	@if [ ! -d "$(DIST_DIR)" ]; then \
-		echo "❌ Error: '$(DIST_DIR)' directory not found. Please ensure '$(DIST_DIR)' exists."; \
+		echo "❌ Error: '$(DIST_DIR)' directory not found. Please run 'make compile' first."; \
 		exit 1; \
 	fi
 	@echo " 🚀 Installing extension from dist/ to $(EXT_DIR)..."
@@ -61,14 +76,17 @@ install:
 	else \
 		cp -r $(DIST_DIR)/legacy/* "$(EXT_DIR)/" ; \
 	fi
-	@echo " 🔌 Explicitly enabling extension..."
+	@echo " 🔄 Refreshing extension state..."
 	@if command -v gnome-extensions > /dev/null 2>&1; then \
+		gnome-extensions disable $(UUID) 2>/dev/null || true; \
 		gnome-extensions enable $(UUID) 2>/dev/null || true; \
 	fi
-	@echo " 🔄 Automatically reloading GNOME Shell (killing PID)..."
-	@if pgrep gnome-shell > /dev/null 2>&1; then \
+	@if [ "$$XDG_SESSION_TYPE" = "x11" ] && pgrep gnome-shell > /dev/null 2>&1; then \
+		echo " 🔄 Reloading GNOME Shell on X11..."; \
 		kill -HUP $$(pgrep gnome-shell | xargs) 2>/dev/null || true; \
-		echo "✔ GNOME Shell reload signal sent."; \
+	elif [ "$$XDG_SESSION_TYPE" = "wayland" ]; then \
+		echo " 💡 Wayland session detected: Toggled extension enable/disable via CLI."; \
+		echo " 💡 Note: If this is a first-time installation and GNOME Shell hasn't indexed the extension yet, log out and log back in, or run 'make nested'."; \
 	fi
 	@echo " 🔍 Verifying extension status..."
 	@if command -v gnome-extensions > /dev/null 2>&1; then \
@@ -130,8 +148,10 @@ clean:
 
 help:
 	@echo "Available Makefile targets:"
-	@echo "  make install       - Install pre-built extension from dist/, auto-enable, and restart GNOME Shell"
-	@echo "  make compile       - Auto-detect GNOME version & compile TS to JS (for developers)"
+	@echo "  make run           - Compile, install, and enable extension for current session"
+	@echo "  make nested        - Launch nested GNOME Shell window (ideal for testing on Wayland)"
+	@echo "  make install       - Install compiled extension from dist/ and refresh state"
+	@echo "  make compile       - Auto-detect GNOME version & compile TS to JS"
 	@echo "  make compile-all   - Compile both Legacy (GNOME 42-44) and ESM (GNOME 45+)"
 	@echo "  make pack          - Package separate .zip files for Legacy and ESM"
 	@echo "  make check         - Verify syntax across both Legacy and ESM builds"
