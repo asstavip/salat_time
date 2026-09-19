@@ -1,27 +1,9 @@
-// Ambient Types & GJS Declarations for Moroccan Salat GNOME Extension
+// Ambient Types & Declarations for Moroccan Salat GNOME Extension (GNOME 45+ ESM)
+
+declare module 'gi://*';
+declare module 'resource://*';
 
 declare function log(message: string): void;
-
-declare var imports: {
-    gi: {
-        GLib: any;
-        Gio: any;
-        Soup: any;
-        St: any;
-        Clutter: any;
-        Adw: any;
-        Gtk: any;
-    };
-    ui: {
-        main: any;
-        panelMenu: any;
-        popupMenu: any;
-    };
-    misc: {
-        extensionUtils: any;
-    };
-    [key: string]: any;
-};
 
 interface City {
     id: number;

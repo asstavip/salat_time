@@ -1,5 +1,4 @@
-"use strict";
-/// <reference path="./types.d.ts" />
+
 var GLib = imports.gi.GLib;
 var CONFIG_DIR = GLib.get_user_config_dir() + '/salat-gnome-extension';
 var CONFIG_FILE = CONFIG_DIR + '/config.json';
@@ -23,10 +22,10 @@ var CITIES = [
     { id: 30, name: 'Laâyoune' }
 ];
 var DEFAULT_IQAMA_DELAYS = {
-    Fajr: 20,
+    Fajr: 30,
     Dhuhr: 15,
     Asr: 15,
-    Maghrib: 5,
+    Maghrib: 10,
     Ishae: 15
 };
 var PRAYER_EMOJIS = {

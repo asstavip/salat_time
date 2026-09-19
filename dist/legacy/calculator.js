@@ -1,10 +1,5 @@
-"use strict";
-/// <reference path="./types.d.ts" />
-var ExtensionUtils = imports.misc.extensionUtils;
-function _getCalculatorModules() {
-    const Me = ExtensionUtils.getCurrentExtension();
-    return Me.imports.i18n;
-}
+
+var I18n = imports.misc.extensionUtils.getCurrentExtension().imports.i18n;
 function formatDiff(diffMs) {
     const totalSecs = Math.max(0, Math.floor(diffMs / 1000));
     const hours = Math.floor(totalSecs / 3600);
@@ -19,7 +14,6 @@ function formatDiff(diffMs) {
 function getPrayerEntries(prayerTimesData, iqamaDelays, currentLang, now) {
     if (!prayerTimesData)
         return [];
-    const I18n = _getCalculatorModules();
     const keys = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Ishae'];
     const i18nKeys = { Fajr: 'fajr', Dhuhr: 'dhuhr', Asr: 'asr', Maghrib: 'maghrib', Ishae: 'isha' };
     return keys.map((key) => {

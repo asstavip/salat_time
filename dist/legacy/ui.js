@@ -1,20 +1,11 @@
-"use strict";
-/// <reference path="./types.d.ts" />
+
 var GLib = imports.gi.GLib;
 var PopupMenu = imports.ui.popupMenu;
-var ExtensionUtils = imports.misc.extensionUtils;
-function _getUIModules() {
-    const Me = ExtensionUtils.getCurrentExtension();
-    return {
-        Constants: Me.imports.constants,
-        I18n: Me.imports.i18n,
-        Calculator: Me.imports.calculator
-    };
-}
+var I18n = imports.misc.extensionUtils.getCurrentExtension().imports.i18n;
+var Calculator = imports.misc.extensionUtils.getCurrentExtension().imports.calculator;
 function updatePanelText(indicator, prayerTimesData, iqamaDelays, currentLang) {
     if (!prayerTimesData || !indicator)
         return;
-    const { I18n, Calculator } = _getUIModules();
     const now = new Date();
     const prayers = Calculator.getPrayerEntries(prayerTimesData, iqamaDelays, currentLang, now);
     const active = Calculator.findActivePrayer(prayers, iqamaDelays, now);
@@ -38,7 +29,6 @@ function updatePanelText(indicator, prayerTimesData, iqamaDelays, currentLang) {
 function rebuildMenu(indicator, config, prayerTimesData, callbacks) {
     if (!prayerTimesData || !indicator)
         return;
-    const { I18n, Calculator } = _getUIModules();
     const now = new Date();
     const prayers = Calculator.getPrayerEntries(prayerTimesData, config.iqamaDelays, config.lang, now);
     const active = Calculator.findActivePrayer(prayers, config.iqamaDelays, now);

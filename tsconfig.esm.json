@@ -4,12 +4,12 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "outDir": "./dist/esm",
-    "rootDir": "./src/esm",
+    "rootDir": "./src",
     "strict": true,
     "noImplicitAny": false,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "preserveConstEnums": true
   },
-  "include": ["src/esm/**/*"]
+  "include": ["src/*.ts"]
 }

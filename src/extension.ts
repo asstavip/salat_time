@@ -1,201 +1,187 @@
 /// <reference path="./types.d.ts" />
+import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
+import St from 'gi://St';
+import Clutter from 'gi://Clutter';
+import GLib from 'gi://GLib';
 
-var { St, Clutter, GLib } = imports.gi;
-var Main = imports.ui.main;
-var PanelMenu = imports.ui.panelMenu;
-var ExtensionUtils = imports.misc.extensionUtils;
+import * as Constants from './constants.js';
+import * as Config from './config.js';
+import * as Api from './api.js';
+import * as UI from './ui.js';
 
-let Constants: any, Config: any, Api: any, UI: any;
-let indicator: any = null;
-let timeoutId: number = 0;
-let httpSession: any = null;
-let config: UserConfig | null = null;
-let configMonitor: any = null;
-let prayerTimesData: PrayerTimesData | null = null;
+export default class SalatExtension extends Extension {
+    private indicator: any = null;
+    private timeoutId: number = 0;
+    private httpSession: any = null;
+    private config: UserConfig | null = null;
+    private configMonitor: any = null;
+    private prayerTimesData: PrayerTimesData | null = null;
 
-function _getExtensionModules(): any {
-    const Me = ExtensionUtils.getCurrentExtension();
-    return {
-        Constants: Me.imports.constants,
-        Config: Me.imports.config,
-        Api: Me.imports.api,
-        UI: Me.imports.ui
-    };
-}
-
-function destroyOldStatusAreaRole(): void {
-    try {
-        if (Main.panel.statusArea['salat-indicator']) {
-            log('[SalatExtension] Cleaning up pre-existing salat-indicator statusArea entry...');
-            Main.panel.statusArea['salat-indicator'].destroy();
-        }
-    } catch (e: any) {
-        log('[SalatExtension] Note on statusArea cleanup: ' + e.message);
-    }
-}
-
-function reloadAndSyncUI(): void {
-    try {
-        log('[SalatExtension] Syncing UI...');
-        if (!config) return;
-        UI.updatePanelText(indicator, prayerTimesData, config.iqamaDelays, config.lang);
-        UI.rebuildMenu(indicator, config, prayerTimesData, {
-            onSelectCity: (city: City) => {
-                log('[SalatExtension] City selected: ' + city.name);
-                if (config) {
-                    config.city = city;
-                    Config.saveConfig(config);
-                }
-                recreatePanelIndicator();
-            },
-            onSelectLang: (langCode: string) => {
-                log('[SalatExtension] Language selected: ' + langCode);
-                if (config) {
-                    config.lang = langCode;
-                    Config.saveConfig(config);
-                }
-                recreatePanelIndicator();
-            },
-            onSetIqamaDelay: (prayerKey: string, minutes: number) => {
-                log(`[SalatExtension] Delay set for ${prayerKey}: +${minutes}m`);
-                if (config) {
-                    config.iqamaDelays[prayerKey] = minutes;
-                    Config.saveConfig(config);
-                }
-                recreatePanelIndicator();
-            },
-            onResetIqamaDefaults: () => {
-                log('[SalatExtension] Iqama delays reset to defaults.');
-                if (config) {
-                    config.iqamaDelays = Object.assign({}, Constants.DEFAULT_IQAMA_DELAYS);
-                    Config.saveConfig(config);
-                }
-                recreatePanelIndicator();
-            }
-        });
-        log('[SalatExtension] UI sync completed successfully.');
-    } catch (e: any) {
-        log('[SalatExtension] Error in reloadAndSyncUI: ' + e.message + '\n' + e.stack);
-    }
-}
-
-function refreshPrayerTimes(): void {
-    if (!httpSession || !config) {
-        log('[SalatExtension] Cannot refresh prayer times: httpSession or config missing.');
-        return;
-    }
-    log(`[SalatExtension] Refreshing prayer times for city ID ${config.city.id} (${config.city.name})...`);
-    Api.fetchPrayerTimes(
-        httpSession,
-        config.city.id,
-        (data: PrayerTimesData) => {
-            log('[SalatExtension] Received prayer times data successfully.');
-            prayerTimesData = data;
-            reloadAndSyncUI();
-        },
-        (err: Error) => {
-            log('[SalatExtension] Failed to fetch prayer times: ' + err.message);
-        }
-    );
-}
-
-function recreatePanelIndicator(): void {
-    log('[SalatExtension] Rebuilding panel indicator from scratch...');
-    try {
-        if (indicator) {
-            indicator.destroy();
-            indicator = null;
-        }
-        destroyOldStatusAreaRole();
-
-        indicator = new PanelMenu.Button(0.0, "Salat & Iqama Indicator", false);
-        indicator.buttonText = new St.Label({
-            text: "🕌 Loading Salat...",
-            y_align: Clutter.ActorAlign.CENTER
-        });
-        indicator.add_child(indicator.buttonText);
-
+    enable() {
+        log('[SalatExtension ESM] Enabling extension...');
         try {
-            Main.panel.addToStatusArea('salat-indicator', indicator, 0, 'right');
-            log('[SalatExtension] Added indicator to statusArea with role salat-indicator.');
-        } catch (e: any) {
-            log('[SalatExtension] addToStatusArea salat-indicator exception: ' + e.message + ', using fallback role.');
-            let fallbackRole = 'salat-indicator-' + Date.now();
-            Main.panel.addToStatusArea(fallbackRole, indicator, 0, 'right');
-            log('[SalatExtension] Added indicator with fallback role: ' + fallbackRole);
-        }
-
-        refreshPrayerTimes();
-    } catch (e: any) {
-        log('[SalatExtension] Error recreating panel indicator: ' + e.message);
-    }
-}
-
-function init(): void {
-    log('[SalatExtension] Initializing extension...');
-    const { Api: ApiMod } = _getExtensionModules();
-    httpSession = ApiMod.createSession();
-}
-
-function enable(): void {
-    log('[SalatExtension] Enabling extension...');
-    try {
-        const { Constants: ConstMod, Config: ConfigMod, Api: ApiMod, UI: UIMod } = _getExtensionModules();
-        Constants = ConstMod;
-        Config = ConfigMod;
-        Api = ApiMod;
-        UI = UIMod;
-
-        config = Config.loadConfig();
-        if (config) {
-            log(`[SalatExtension] Loaded config: City=${config.city.name}, Lang=${config.lang}`);
-        }
-
-        configMonitor = Config.setupConfigMonitor(() => {
-            log('[SalatExtension] Config monitor triggered: config changed on disk. Recreating indicator...');
-            config = Config.loadConfig();
-            recreatePanelIndicator();
-        });
-
-        recreatePanelIndicator();
-
-        if (timeoutId) {
-            GLib.source_remove(timeoutId);
-        }
-        timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
-            const now = new Date();
-            if (!prayerTimesData || (now.getHours() === 0 && now.getMinutes() === 0 && now.getSeconds() === 0)) {
-                refreshPrayerTimes();
-            } else if (config) {
-                UI.updatePanelText(indicator, prayerTimesData, config.iqamaDelays, config.lang);
+            this.httpSession = Api.createSession();
+            this.config = Config.loadConfig();
+            if (this.config) {
+                log(`[SalatExtension ESM] Loaded config: City=${this.config.city.name}, Lang=${this.config.lang}`);
             }
-            return GLib.SOURCE_CONTINUE;
-        });
 
-        log('[SalatExtension] Extension enabled successfully!');
-    } catch (e: any) {
-        log('[SalatExtension] FATAL ERROR in enable(): ' + e.message + '\n' + e.stack);
+            this.configMonitor = Config.setupConfigMonitor(() => {
+                log('[SalatExtension ESM] Config monitor triggered: config changed on disk. Recreating indicator...');
+                this.config = Config.loadConfig();
+                this.recreatePanelIndicator();
+            });
+
+            this.recreatePanelIndicator();
+
+            if (this.timeoutId) {
+                GLib.source_remove(this.timeoutId);
+            }
+            this.timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
+                const now = new Date();
+                if (!this.prayerTimesData || (now.getHours() === 0 && now.getMinutes() === 0 && now.getSeconds() === 0)) {
+                    this.refreshPrayerTimes();
+                } else if (this.config) {
+                    UI.updatePanelText(this.indicator, this.prayerTimesData, this.config.iqamaDelays, this.config.lang);
+                }
+                return GLib.SOURCE_CONTINUE;
+            });
+
+            log('[SalatExtension ESM] Extension enabled successfully!');
+        } catch (e: any) {
+            log('[SalatExtension ESM] FATAL ERROR in enable(): ' + e.message + '\n' + e.stack);
+        }
     }
-}
 
-function disable(): void {
-    log('[SalatExtension] Disabling extension...');
-    try {
-        if (configMonitor) {
-            configMonitor.cancel();
-            configMonitor = null;
+    disable() {
+        log('[SalatExtension ESM] Disabling extension...');
+        try {
+            if (this.configMonitor) {
+                this.configMonitor.cancel();
+                this.configMonitor = null;
+            }
+            if (this.timeoutId) {
+                GLib.source_remove(this.timeoutId);
+                this.timeoutId = 0;
+            }
+            if (this.indicator) {
+                this.indicator.destroy();
+                this.indicator = null;
+            }
+            this.destroyOldStatusAreaRole();
+            log('[SalatExtension ESM] Extension disabled cleanly.');
+        } catch (e: any) {
+            log('[SalatExtension ESM] Error during disable(): ' + e.message);
         }
-        if (timeoutId) {
-            GLib.source_remove(timeoutId);
-            timeoutId = 0;
+    }
+
+    private destroyOldStatusAreaRole(): void {
+        try {
+            if (Main.panel.statusArea['salat-indicator']) {
+                log('[SalatExtension ESM] Cleaning up pre-existing salat-indicator statusArea entry...');
+                Main.panel.statusArea['salat-indicator'].destroy();
+            }
+        } catch (e: any) {
+            log('[SalatExtension ESM] Note on statusArea cleanup: ' + e.message);
         }
-        if (indicator) {
-            indicator.destroy();
-            indicator = null;
+    }
+
+    private reloadAndSyncUI(): void {
+        try {
+            log('[SalatExtension ESM] Syncing UI...');
+            if (!this.config) return;
+            UI.updatePanelText(this.indicator, this.prayerTimesData, this.config.iqamaDelays, this.config.lang);
+            UI.rebuildMenu(this.indicator, this.config, this.prayerTimesData, {
+                onSelectCity: (city: City) => {
+                    log('[SalatExtension ESM] City selected: ' + city.name);
+                    if (this.config) {
+                        this.config.city = city;
+                        Config.saveConfig(this.config);
+                    }
+                    this.recreatePanelIndicator();
+                },
+                onSelectLang: (langCode: string) => {
+                    log('[SalatExtension ESM] Language selected: ' + langCode);
+                    if (this.config) {
+                        this.config.lang = langCode;
+                        Config.saveConfig(this.config);
+                    }
+                    this.recreatePanelIndicator();
+                },
+                onSetIqamaDelay: (prayerKey: string, minutes: number) => {
+                    log(`[SalatExtension ESM] Delay set for ${prayerKey}: +${minutes}m`);
+                    if (this.config) {
+                        this.config.iqamaDelays[prayerKey] = minutes;
+                        Config.saveConfig(this.config);
+                    }
+                    this.recreatePanelIndicator();
+                },
+                onResetIqamaDefaults: () => {
+                    log('[SalatExtension ESM] Iqama delays reset to defaults.');
+                    if (this.config) {
+                        this.config.iqamaDelays = Object.assign({}, Constants.DEFAULT_IQAMA_DELAYS);
+                        Config.saveConfig(this.config);
+                    }
+                    this.recreatePanelIndicator();
+                }
+            });
+            log('[SalatExtension ESM] UI sync completed successfully.');
+        } catch (e: any) {
+            log('[SalatExtension ESM] Error in reloadAndSyncUI: ' + e.message + '\n' + e.stack);
         }
-        destroyOldStatusAreaRole();
-        log('[SalatExtension] Extension disabled cleanly.');
-    } catch (e: any) {
-        log('[SalatExtension] Error during disable(): ' + e.message);
+    }
+
+    private refreshPrayerTimes(): void {
+        if (!this.httpSession || !this.config) {
+            log('[SalatExtension ESM] Cannot refresh prayer times: httpSession or config missing.');
+            return;
+        }
+        log(`[SalatExtension ESM] Refreshing prayer times for city ID ${this.config.city.id} (${this.config.city.name})...`);
+        Api.fetchPrayerTimes(
+            this.httpSession,
+            this.config.city.id,
+            (data: PrayerTimesData) => {
+                log('[SalatExtension ESM] Received prayer times data successfully.');
+                this.prayerTimesData = data;
+                this.reloadAndSyncUI();
+            },
+            (err: Error) => {
+                log('[SalatExtension ESM] Failed to fetch prayer times: ' + err.message);
+            }
+        );
+    }
+
+    private recreatePanelIndicator(): void {
+        log('[SalatExtension ESM] Rebuilding panel indicator from scratch...');
+        try {
+            if (this.indicator) {
+                this.indicator.destroy();
+                this.indicator = null;
+            }
+            this.destroyOldStatusAreaRole();
+
+            this.indicator = new PanelMenu.Button(0.0, "Salat & Iqama Indicator", false);
+            this.indicator.buttonText = new St.Label({
+                text: "🕌 Loading Salat...",
+                y_align: Clutter.ActorAlign.CENTER
+            });
+            this.indicator.add_child(this.indicator.buttonText);
+
+            try {
+                Main.panel.addToStatusArea('salat-indicator', this.indicator, 0, 'right');
+                log('[SalatExtension ESM] Added indicator to statusArea with role salat-indicator.');
+            } catch (e: any) {
+                log('[SalatExtension ESM] addToStatusArea salat-indicator exception: ' + e.message + ', using fallback role.');
+                let fallbackRole = 'salat-indicator-' + Date.now();
+                Main.panel.addToStatusArea(fallbackRole, this.indicator, 0, 'right');
+                log('[SalatExtension ESM] Added indicator with fallback role: ' + fallbackRole);
+            }
+
+            this.refreshPrayerTimes();
+        } catch (e: any) {
+            log('[SalatExtension ESM] Error recreating panel indicator: ' + e.message);
+        }
     }
 }

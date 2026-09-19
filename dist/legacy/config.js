@@ -1,13 +1,8 @@
-"use strict";
-/// <reference path="./types.d.ts" />
-var { GLib, Gio } = imports.gi;
-var ExtensionUtils = imports.misc.extensionUtils;
-function _getConfigConstantsModule() {
-    const Me = ExtensionUtils.getCurrentExtension();
-    return Me.imports.constants;
-}
+
+var GLib = imports.gi.GLib;
+var Gio = imports.gi.Gio;
+var Constants = imports.misc.extensionUtils.getCurrentExtension().imports.constants;
 function loadConfig() {
-    const Constants = _getConfigConstantsModule();
     let config = {
         city: Constants.CITIES[0],
         lang: 'auto',
@@ -41,7 +36,6 @@ function loadConfig() {
     return config;
 }
 function saveConfig(config) {
-    const Constants = _getConfigConstantsModule();
     try {
         if (!GLib.file_test(Constants.CONFIG_DIR, GLib.FileTest.EXISTS)) {
             GLib.mkdir_with_parents(Constants.CONFIG_DIR, 0o755);
@@ -60,7 +54,6 @@ function saveConfig(config) {
     }
 }
 function setupConfigMonitor(onConfigChanged) {
-    const Constants = _getConfigConstantsModule();
     try {
         if (!GLib.file_test(Constants.CONFIG_DIR, GLib.FileTest.EXISTS)) {
             GLib.mkdir_with_parents(Constants.CONFIG_DIR, 0o755);

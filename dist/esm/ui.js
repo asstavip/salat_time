@@ -63,4 +63,11 @@ export function rebuildMenu(indicator, config, prayerTimesData, callbacks) {
         }
     });
     indicator.menu.addMenuItem(openPrefsItem);
+    // 4. Close
+    let closeItem = new PopupMenu.PopupMenuItem('✖ Close');
+    closeItem.connect('activate', () => {
+        if (callbacks.onClose)
+            callbacks.onClose();
+    });
+    indicator.menu.addMenuItem(closeItem);
 }

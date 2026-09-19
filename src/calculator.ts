@@ -1,13 +1,7 @@
 /// <reference path="./types.d.ts" />
+import * as I18n from './i18n.js';
 
-var ExtensionUtils = imports.misc.extensionUtils;
-
-function _getCalculatorModules(): any {
-    const Me = ExtensionUtils.getCurrentExtension();
-    return Me.imports.i18n;
-}
-
-function formatDiff(diffMs: number): string {
+export function formatDiff(diffMs: number): string {
     const totalSecs = Math.max(0, Math.floor(diffMs / 1000));
     const hours = Math.floor(totalSecs / 3600);
     const mins = Math.floor((totalSecs % 3600) / 60);
@@ -18,14 +12,13 @@ function formatDiff(diffMs: number): string {
     return `${secs}s`;
 }
 
-function getPrayerEntries(
+export function getPrayerEntries(
     prayerTimesData: PrayerTimesData | null,
     iqamaDelays: IqamaDelays,
     currentLang: string,
     now: Date
 ): PrayerEntry[] {
     if (!prayerTimesData) return [];
-    const I18n = _getCalculatorModules();
 
     const keys: string[] = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Ishae'];
     const i18nKeys: Record<string, string> = { Fajr: 'fajr', Dhuhr: 'dhuhr', Asr: 'asr', Maghrib: 'maghrib', Ishae: 'isha' };
@@ -41,7 +34,7 @@ function getPrayerEntries(
     });
 }
 
-function findActivePrayer(prayers: PrayerEntry[], iqamaDelays: IqamaDelays, now: Date): ActivePrayer | null {
+export function findActivePrayer(prayers: PrayerEntry[], iqamaDelays: IqamaDelays, now: Date): ActivePrayer | null {
     if (!prayers || prayers.length === 0) return null;
 
     // Check if we are between adhan and iqama

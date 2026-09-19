@@ -1,0 +1,193 @@
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.gtk.vfs.Daemon' requested by ':1.0' (uid=1000 pid=166904 comm="gnome-shell --nested --wayland" label="unconfined")
+dbus-daemon[166903]: [session uid=1000 pid=166903] Successfully activated service 'org.gtk.vfs.Daemon'
+fusermount3: failed to access mountpoint /run/user/1000/gvfs: Permission denied
+libmutter-Message: 22:55:05.568: Running GNOME Shell (using mutter 46.2) as a Wayland display server
+** Message: 22:55:05.681: Obtained a high priority EGL context
+** Message: 22:55:05.686: Obtained a high priority EGL context
+libmutter-Message: 22:55:05.711: Using public X11 display :2, (using :3 for managed services)
+
+(gnome-shell:166904): libmutter-WARNING **: 22:55:05.712: WL: unable to lock lockfile /run/user/1000/wayland-0.lock, maybe another compositor is running
+
+libmutter-Message: 22:55:05.712: Using Wayland display name 'wayland-1'
+Window manager warning: Failed to set environment variable GNOME_SETUP_DISPLAY for gnome-session: GDBus.Error:org.freedesktop.DBus.Error.NameHasNoOwner: Name "org.gnome.SessionManager" does not exist
+Window manager warning: Failed to set environment variable DISPLAY for gnome-session: GDBus.Error:org.freedesktop.DBus.Error.NameHasNoOwner: Name "org.gnome.SessionManager" does not exist
+Window manager warning: Failed to set environment variable XAUTHORITY for gnome-session: GDBus.Error:org.freedesktop.DBus.Error.NameHasNoOwner: Name "org.gnome.SessionManager" does not exist
+Window manager warning: Failed to set environment variable WAYLAND_DISPLAY for gnome-session: GDBus.Error:org.freedesktop.DBus.Error.NameHasNoOwner: Name "org.gnome.SessionManager" does not exist
+GNOME Shell-Message: 22:55:06.223: Unset XDG_SESSION_ID, getCurrentSessionProxy() called outside a user session. Asking logind directly.
+GNOME Shell-Message: 22:55:06.224: Will monitor session 3
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.freedesktop.systemd1' requested by ':1.0' (uid=1000 pid=166904 comm="gnome-shell --nested --wayland" label="unconfined")
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.gnome.Shell.Screencast' requested by ':1.0' (uid=1000 pid=166904 comm="gnome-shell --nested --wayland" label="unconfined")
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.freedesktop.impl.portal.PermissionStore' requested by ':1.0' (uid=1000 pid=166904 comm="gnome-shell --nested --wayland" label="unconfined")
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.gnome.Shell.CalendarServer' requested by ':1.0' (uid=1000 pid=166904 comm="gnome-shell --nested --wayland" label="unconfined")
+dbus-daemon[166903]: [session uid=1000 pid=166903] Successfully activated service 'org.freedesktop.impl.portal.PermissionStore'
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.gnome.evolution.dataserver.Sources5' requested by ':1.4' (uid=1000 pid=166957 comm="/usr/libexec/gnome-shell-calendar-server" label="unconfined")
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.gnome.Shell.Notifications' requested by ':1.0' (uid=1000 pid=166904 comm="gnome-shell --nested --wayland" label="unconfined")
+
+** (gnome-shell:166904): WARNING **: 22:55:06.403: Could not issue 'GetUnit' systemd call
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.gnome.OnlineAccounts' requested by ':1.5' (uid=1000 pid=166970 comm="/usr/libexec/evolution-source-registry" label="unconfined")
+Window manager warning: Failed to parse saved session file: Failed to open file “/home/abderrahman/.config/mutter/sessions/103a92776cafe610ee178973784765318700000052410018.ms”: No such file or directory
+dbus-daemon[166903]: [session uid=1000 pid=166903] Successfully activated service 'org.gnome.evolution.dataserver.Sources5'
+
+(gnome-shell:166904): Gjs-WARNING **: 22:55:06.438: Gio.UnixInputStream has been moved to a separate platform-specific library. Please update your code to use GioUnix.InputStream instead.
+0 inhibit() ["resource:///org/gnome/shell/misc/loginManager.js":209:8]
+1 InterpretGeneratorResume() ["self-hosted":1461:33]
+2 AsyncFunctionNext() ["self-hosted":852:26]
+3 anonymous() ["resource:///org/gnome/shell/ui/init.js":21:19]
+
+dbus-daemon[166903]: [session uid=1000 pid=166903] Successfully activated service 'org.gnome.Shell.Screencast'
+goa-daemon-Message: 22:55:06.448: goa-daemon version 3.50.4 starting
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.gnome.Identity' requested by ':1.7' (uid=1000 pid=166985 comm="/usr/libexec/goa-daemon" label="unconfined")
+dbus-daemon[166903]: [session uid=1000 pid=166903] Successfully activated service 'org.gnome.OnlineAccounts'
+dbus-daemon[166903]: [session uid=1000 pid=166903] Successfully activated service 'org.gnome.Identity'
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.gnome.evolution.dataserver.Calendar8' requested by ':1.4' (uid=1000 pid=166957 comm="/usr/libexec/gnome-shell-calendar-server" label="unconfined")
+dbus-daemon[166903]: [session uid=1000 pid=166903] Successfully activated service 'org.gnome.Shell.CalendarServer'
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.gtk.vfs.UDisks2VolumeMonitor' requested by ':1.0' (uid=1000 pid=166904 comm="gnome-shell --nested --wayland" label="unconfined")
+dbus-daemon[166903]: [session uid=1000 pid=166903] Successfully activated service 'org.gnome.Shell.Notifications'
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.freedesktop.portal.IBus' requested by ':1.10' (uid=1000 pid=166998 comm="ibus-daemon --panel disable" label="unconfined")
+dbus-daemon[166903]: [session uid=1000 pid=166903] Successfully activated service 'org.freedesktop.portal.IBus'
+dbus-daemon[166903]: [session uid=1000 pid=166903] Successfully activated service 'org.gnome.evolution.dataserver.Calendar8'
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.gnome.evolution.dataserver.AddressBook10' requested by ':1.9' (uid=1000 pid=167023 comm="/usr/libexec/evolution-calendar-factory" label="unconfined")
+dbus-daemon[166903]: [session uid=1000 pid=166903] Successfully activated service 'org.gtk.vfs.UDisks2VolumeMonitor'
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.gtk.vfs.GoaVolumeMonitor' requested by ':1.0' (uid=1000 pid=166904 comm="gnome-shell --nested --wayland" label="unconfined")
+dbus-daemon[166903]: [session uid=1000 pid=166903] Successfully activated service 'org.gtk.vfs.GoaVolumeMonitor'
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.gtk.vfs.MTPVolumeMonitor' requested by ':1.0' (uid=1000 pid=166904 comm="gnome-shell --nested --wayland" label="unconfined")
+dbus-daemon[166903]: [session uid=1000 pid=166903] Successfully activated service 'org.gnome.evolution.dataserver.AddressBook10'
+dbus-daemon[166903]: [session uid=1000 pid=166903] Successfully activated service 'org.gtk.vfs.MTPVolumeMonitor'
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.gtk.vfs.GPhoto2VolumeMonitor' requested by ':1.0' (uid=1000 pid=166904 comm="gnome-shell --nested --wayland" label="unconfined")
+dbus-daemon[166903]: [session uid=1000 pid=166903] Successfully activated service 'org.gtk.vfs.GPhoto2VolumeMonitor'
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.gtk.vfs.AfcVolumeMonitor' requested by ':1.0' (uid=1000 pid=166904 comm="gnome-shell --nested --wayland" label="unconfined")
+dbus-daemon[166903]: [session uid=1000 pid=166903] Successfully activated service 'org.gtk.vfs.AfcVolumeMonitor'
+GNOME Shell-Message: 22:55:06.687: Error looking up permission: GDBus.Error:org.freedesktop.portal.Error.NotFound: No entry for geolocation
+GNOME Shell-Message: 22:55:06.696: Failed to register AuthenticationAgent
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='ca.desrt.dconf' requested by ':1.0' (uid=1000 pid=166904 comm="gnome-shell --nested --wayland" label="unconfined")
+dbus-daemon[166903]: [session uid=1000 pid=166903] Successfully activated service 'ca.desrt.dconf'
+
+(gnome-shell:166904): St-WARNING **: 22:55:06.887: Failed to open sliced image: The resource at “/org/gnome/shell/theme/process-working-dark.svg” does not exist
+
+(gnome-shell:166904): GLib-GObject-CRITICAL **: 22:55:06.993: value "0.000000" of type 'gdouble' is invalid or out of range for property 'slow-down-factor' of type 'gdouble'
+
+(gnome-shell:166904): St-WARNING **: 22:55:07.067: Failed to open sliced image: The resource at “/org/gnome/shell/theme/process-working-dark.svg” does not exist
+
+(gnome-shell:166904): St-WARNING **: 22:55:07.069: Failed to open sliced image: The resource at “/org/gnome/shell/theme/process-working-dark.svg” does not exist
+
+(gnome-shell:166904): St-WARNING **: 22:55:07.071: Failed to open sliced image: The resource at “/org/gnome/shell/theme/process-working-dark.svg” does not exist
+GNOME Shell-Message: 22:55:07.253: dash2dock-lite enabled
+GNOME Shell-Message: 22:55:07.264: loading user theme: /home/abderrahman/.themes/MacTahoe-Dark-solid-green/gnome-shell/gnome-shell.css
+GNOME Shell-Message: 22:55:07.356: Error: Requiring GTop, version none: Typelib file for namespace 'GTop' (any version) not found
+require@resource:///org/gnome/gjs/modules/esm/gi.js:16:28
+@gi://GTop/:3:25
+@resource:///org/gnome/shell/ui/init.js:21:20
+  
+dbus-daemon[166903]: [session uid=1000 pid=166903] Reloaded configuration
+GNOME Shell-Message: 22:55:07.705: [tilingshell] [DefaultMenu] updateMonitorName: monitor=0, x=0, y=0
+GNOME Shell-Message: 22:55:07.706: [tilingshell] [DefaultMenu] updateMonitorName: monitorsDetails=[]
+GNOME Shell-Message: 22:55:07.706: [tilingshell] [DefaultMenu] updateMonitorName: no match found for monitor 0
+GNOME Shell-Message: 22:55:07.709: [tilingshell] [extension] extension is enabled
+Window manager warning: Overwriting existing binding of keysym 6e with keysym 6e (keycode 39).
+Window manager warning: Overwriting existing binding of keysym 38 with keysym 38 (keycode 11).
+Window manager warning: Overwriting existing binding of keysym 35 with keysym 35 (keycode e).
+Window manager warning: Overwriting existing binding of keysym 34 with keysym 34 (keycode d).
+Window manager warning: Overwriting existing binding of keysym 60 with keysym 2f7259c9 (keycode 31).
+Window manager warning: Overwriting existing binding of keysym 33 with keysym 33 (keycode c).
+Window manager warning: Overwriting existing binding of keysym 32 with keysym 32 (keycode b).
+Window manager warning: Overwriting existing binding of keysym 31 with keysym 31 (keycode a).
+Window manager warning: Overwriting existing binding of keysym 37 with keysym 37 (keycode 10).
+Window manager warning: Overwriting existing binding of keysym 39 with keysym 39 (keycode 12).
+Window manager warning: Overwriting existing binding of keysym 36 with keysym 36 (keycode f).
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.freedesktop.portal.Desktop' requested by ':1.14' (uid=1000 pid=167038 comm="/usr/libexec/ibus-extension-gtk3" label="unconfined")
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.freedesktop.portal.Documents' requested by ':1.24' (uid=1000 pid=167186 comm="/usr/libexec/xdg-desktop-portal" label="unconfined")
+dbus-daemon[166903]: [session uid=1000 pid=166903] Successfully activated service 'org.freedesktop.portal.Documents'
+fusermount3: failed to access mountpoint /run/user/1000/doc: Permission denied
+error: fuse init failed: Can't mount path /run/user/1000/doc
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.freedesktop.impl.portal.desktop.gnome' requested by ':1.24' (uid=1000 pid=167186 comm="/usr/libexec/xdg-desktop-portal" label="unconfined")
+
+(gnome-shell:166904): libmutter-WARNING **: 22:55:08.116: (../src/backends/meta-barrier.c:258):init_barrier_impl: runtime check failed: (priv->impl)
+
+(gnome-shell:166904): libmutter-WARNING **: 22:55:08.116: (../src/backends/meta-barrier.c:258):init_barrier_impl: runtime check failed: (priv->impl)
+
+(gnome-shell:166904): libmutter-WARNING **: 22:55:08.116: (../src/backends/meta-barrier.c:258):init_barrier_impl: runtime check failed: (priv->impl)
+GNOME Shell-Message: 22:55:08.275: checking /home/abderrahman/Downloads
+GNOME Shell-Message: 22:55:08.344: autohide enabled
+
+(gnome-shell:166904): GLib-GObject-CRITICAL **: 22:55:08.356: value "nan" of type 'gdouble' is invalid or out of range for property 'clip' of type 'gdouble'
+GNOME Shell-Message: 22:55:08.567: [tilingshell] [GlobalState] added workspace 1
+
+** (gnome-shell:166904): CRITICAL **: 22:55:08.636: cogl_framebuffer_set_viewport: assertion 'width > 0 && height > 0' failed
+
+(xdg-desktop-portal-gnome:167201): Gtk-WARNING **: 22:55:08.766: Theme parser error: gtk.css:6122:31-32: Unexpected data at end of RGB() argument
+
+(xdg-desktop-portal-gnome:167201): Gtk-WARNING **: 22:55:08.766: Theme parser error: gtk.css:6122:58-59: Unexpected data at end of RGB() argument
+
+(xdg-desktop-portal-gnome:167201): Gtk-WARNING **: 22:55:08.766: Theme parser error: gtk.css:6122:86-87: Unexpected data at end of RGB() argument
+
+(xdg-desktop-portal-gnome:167201): Gtk-WARNING **: 22:55:08.766: Theme parser error: gtk.css:6128:31-32: Unexpected data at end of RGB() argument
+
+(xdg-desktop-portal-gnome:167201): Gtk-WARNING **: 22:55:08.767: Theme parser error: gtk.css:6128:58-59: Unexpected data at end of RGB() argument
+
+(xdg-desktop-portal-gnome:167201): Gtk-WARNING **: 22:55:08.816: Theme parser error: gtk.css:4970:12-17: "shade" is not a valid color name.
+
+(xdg-desktop-portal-gnome:167201): Gtk-WARNING **: 22:55:08.816: Theme parser error: gtk.css:5030:12-17: "shade" is not a valid color name.
+
+(xdg-desktop-portal-gnome:167201): Gtk-WARNING **: 22:55:08.816: Theme parser error: gtk.css:5057:12-15: "mix" is not a valid color name.
+
+(xdg-desktop-portal-gnome:167201): Gtk-WARNING **: 22:55:08.816: Theme parser error: gtk.css:5061:12-15: "mix" is not a valid color name.
+
+(xdg-desktop-portal-gnome:167201): Gtk-WARNING **: 22:55:08.817: Theme parser warning: gtk.css:5262:3-5263:1: Expected ';' at end of block
+
+(xdg-desktop-portal-gnome:167201): Gtk-WARNING **: 22:55:08.817: Theme parser error: gtk.css:5293:3-19: No property named "-gtk-icon-effect"
+GNOME Shell-Message: 22:55:09.003: GNOME Shell started at Fri Sep 18 2026 22:55:06 GMT+0100 (GMT+01:00)
+GNOME Shell-Message: 22:55:09.004: Registering session with GDM
+GNOME Shell-Message: 22:55:09.006: [tilingshell] [extension] building a tiling manager for each monitor
+GNOME Shell-Message: 22:55:09.006: [tilingshell] [TilingManager 0] Work area for monitor 0: 0 44 800x556
+dbus-daemon[166903]: [session uid=1000 pid=166903] Successfully activated service 'org.freedesktop.impl.portal.desktop.gnome'
+GNOME Shell-Message: 22:55:09.039: Launching DING process
+
+(gnome-shell:166904): libmutter-WARNING **: 22:55:09.252: (../src/backends/meta-barrier.c:258):init_barrier_impl: runtime check failed: (priv->impl)
+
+(gnome-shell:166904): libmutter-WARNING **: 22:55:09.252: (../src/backends/meta-barrier.c:258):init_barrier_impl: runtime check failed: (priv->impl)
+
+(gnome-shell:166904): GNOME Shell-WARNING **: 22:55:09.253: [V-Shell] Warning: "Dash" module disabled due to potential conflict with another extension
+
+(gnome-shell:166904): libmutter-WARNING **: 22:55:09.255: (../src/backends/meta-barrier.c:258):init_barrier_impl: runtime check failed: (priv->impl)
+
+(gnome-shell:166904): libmutter-WARNING **: 22:55:09.255: (../src/backends/meta-barrier.c:258):init_barrier_impl: runtime check failed: (priv->impl)
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.freedesktop.impl.portal.desktop.gtk' requested by ':1.24' (uid=1000 pid=167186 comm="/usr/libexec/xdg-desktop-portal" label="unconfined")
+dbus-daemon[166903]: [session uid=1000 pid=166903] Successfully activated service 'org.freedesktop.impl.portal.desktop.gtk'
+dbus-daemon[166903]: [session uid=1000 pid=166903] Activating service name='org.freedesktop.secrets' requested by ':1.24' (uid=1000 pid=167186 comm="/usr/libexec/xdg-desktop-portal" label="unconfined")
+discover_other_daemon: 1GNOME_KEYRING_CONTROL=/run/user/1000/keyring
+SSH_AUTH_SOCK=/run/user/1000/keyring/ssh
+** Message: 22:55:10.485: Shutting down GNOME Shell
+
+(gnome-shell:166904): Gjs-CRITICAL **: 22:55:10.604: Object Meta.BackgroundGroup (0x56b33c5f4870), has been already disposed — impossible to access it. This might be caused by the object having been destroyed from C code using something such as destroy(), dispose(), or remove() vfuncs.
+== Stack trace for context 0x56b3376332b0 ==
+#0   56b3376ff258 i   file:///home/abderrahman/.local/share/gnome-shell/extensions/blur-my-shell@aunetx/components/dash_to_dock.js:91 (2e6fd4ccba0 @ 158)
+#1   56b3376ff1b8 i   file:///home/abderrahman/.local/share/gnome-shell/extensions/blur-my-shell@aunetx/components/dash_to_dock.js:55 (2e6fd4cca10 @ 79)
+#2   56b3376ff130 i   file:///home/abderrahman/.local/share/gnome-shell/extensions/blur-my-shell@aunetx/components/dash_to_dock.js:37 (2e6fd4cc740 @ 13)
+#3   56b3376ff078 i   resource:///org/gnome/shell/ui/layout.js:247 (359f7b9df470 @ 328)
+
+(gnome-shell:166904): Clutter-CRITICAL **: 22:55:10.604: clutter_actor_remove_child: assertion 'child->priv->parent != NULL' failed
+
+(gnome-shell:166904): Gjs-CRITICAL **: 22:55:10.604: Object Meta.BackgroundGroup (0x56b33c5f4870), has been already disposed — impossible to access it. This might be caused by the object having been destroyed from C code using something such as destroy(), dispose(), or remove() vfuncs.
+== Stack trace for context 0x56b3376332b0 ==
+#0   56b3376ff258 i   file:///home/abderrahman/.local/share/gnome-shell/extensions/blur-my-shell@aunetx/components/dash_to_dock.js:94 (2e6fd4ccba0 @ 223)
+#1   56b3376ff1b8 i   file:///home/abderrahman/.local/share/gnome-shell/extensions/blur-my-shell@aunetx/components/dash_to_dock.js:55 (2e6fd4cca10 @ 79)
+#2   56b3376ff130 i   file:///home/abderrahman/.local/share/gnome-shell/extensions/blur-my-shell@aunetx/components/dash_to_dock.js:37 (2e6fd4cc740 @ 13)
+#3   56b3376ff078 i   resource:///org/gnome/shell/ui/layout.js:247 (359f7b9df470 @ 328)
+
+(gnome-shell:166904): GLib-GIO-CRITICAL **: 22:55:10.614: Error while sending AddMatch() message: The connection is closed
+
+(gnome-shell:166904): GVFS-WARNING **: 22:55:10.614: Error: Error calling StartServiceByName for org.gtk.vfs.Metadata: The connection is closed
+
+
+(gnome-shell:166904): Gjs-CRITICAL **: 22:55:10.713: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+The offending signal was destroy on StWidget 0x56b3397e3f80.
+== Stack trace for context 0x56b3376332b0 ==
+
+(gnome-shell:166904): Gjs-CRITICAL **: 22:55:10.713: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+The offending signal was destroy on StWidget 0x56b3397e3f80.
+== Stack trace for context 0x56b3376332b0 ==
+
+(gnome-shell:166904): Gjs-CRITICAL **: 22:55:10.713: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+The offending signal was destroy on MetaBackgroundActor 0x56b3397e5990.
+== Stack trace for context 0x56b3376332b0 ==

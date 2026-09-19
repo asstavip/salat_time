@@ -1,6 +1,6 @@
-"use strict";
-/// <reference path="./types.d.ts" />
-var { GLib, Soup } = imports.gi;
+
+var GLib = imports.gi.GLib;
+var Soup = imports.gi.Soup;
 function createSession() {
     return new Soup.Session();
 }

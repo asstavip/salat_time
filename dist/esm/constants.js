@@ -22,10 +22,10 @@ export const CITIES = [
     { id: 30, name: 'Laâyoune' }
 ];
 export const DEFAULT_IQAMA_DELAYS = {
-    Fajr: 20,
+    Fajr: 30,
     Dhuhr: 15,
     Asr: 15,
-    Maghrib: 5,
+    Maghrib: 10,
     Ishae: 15
 };
 export const PRAYER_EMOJIS = {

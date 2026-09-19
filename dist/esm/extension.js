@@ -120,6 +120,18 @@ export default class SalatExtension extends Extension {
                         Config.saveConfig(this.config);
                     }
                     this.recreatePanelIndicator();
+                },
+                onClose: () => {
+                    log('[SalatExtension ESM] Close clicked. Hiding indicator.');
+                    if (this.indicator) {
+                        this.indicator.destroy();
+                        this.indicator = null;
+                    }
+                    this.destroyOldStatusAreaRole();
+                    if (this.timeoutId) {
+                        GLib.source_remove(this.timeoutId);
+                        this.timeoutId = 0;
+                    }
                 }
             });
             log('[SalatExtension ESM] UI sync completed successfully.');

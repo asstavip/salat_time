@@ -31,25 +31,20 @@ nested: compile
 	fi
 	@dbus-run-session gnome-shell --nested --wayland
 
-# Compile Legacy TS sources for GNOME 42-44
-compile-legacy:
-	@echo " 🔨 Compiling Legacy TypeScript sources (GNOME 42-44)..."
-	@mkdir -p $(DIST_DIR)/legacy
-	@$(TSC) -p tsconfig.legacy.json
-	@$(TSC) -p tsconfig.legacy.prefs.json
-	@cp -f src/legacy/metadata.json $(DIST_DIR)/legacy/
-	@echo "✔ Legacy compilation successful!"
-
 # Compile ESM TS sources for GNOME 45+
 compile-esm:
 	@echo " 🔨 Compiling ESM TypeScript sources (GNOME 45+)..."
 	@mkdir -p $(DIST_DIR)/esm
 	@$(TSC) -p tsconfig.esm.json
-	@cp -f src/esm/metadata.json $(DIST_DIR)/esm/
+	@cp -f src/metadata.json $(DIST_DIR)/esm/
 	@echo "✔ ESM compilation successful!"
 
+# Transpile ESM build to Legacy JS for GNOME 42-44
+compile-legacy: compile-esm
+	@node scripts/transpile-legacy.js
+
 # Compile both target outputs
-compile-all: compile-legacy compile-esm
+compile-all: compile-esm compile-legacy
 
 # Dynamically compile for host system's GNOME version
 compile:

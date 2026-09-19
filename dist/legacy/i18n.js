@@ -1,5 +1,4 @@
-"use strict";
-/// <reference path="./types.d.ts" />
+
 var GLib = imports.gi.GLib;
 var LANGUAGES = [
     { code: "auto", name: "Auto (System Language)" },
