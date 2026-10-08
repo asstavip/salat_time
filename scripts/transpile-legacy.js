@@ -568,6 +568,11 @@ fs.readdirSync(esmDir).forEach((file) => {
         const transpiled = transpileModule(file, content);
         fs.writeFileSync(destPath, transpiled, 'utf8');
         console.log(`  ✔ Transpiled ${file} -> dist/legacy/${file}`);
+    } else if (file === 'metadata.json') {
+        const meta = JSON.parse(fs.readFileSync(srcPath, 'utf8'));
+        meta['shell-version'] = ["42", "42.9"];
+        fs.writeFileSync(destPath, JSON.stringify(meta, null, 2), 'utf8');
+        console.log(`  ✔ Generated metadata.json for GNOME 42.9 -> dist/legacy/metadata.json`);
     } else {
         fs.copyFileSync(srcPath, destPath);
         console.log(`  ✔ Copied ${file} -> dist/legacy/${file}`);

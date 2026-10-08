@@ -1,6 +1,14 @@
 # 🕌 Moroccan Salat & Iqama GNOME Extension
 
-A clean, lightweight, and modular GNOME Shell extension for Moroccan prayer times and Iqama countdowns, executed natively in **JavaScript** (with TypeScript source files included for development) and powered officially by the Moroccan Ministry of Awqaf & Islamic Affairs (Habous API).
+A clean, lightweight, and modular GNOME Shell extension for Moroccan prayer times and Iqama countdowns, built for **GNOME Shell 42.9** and powered officially by the Moroccan Ministry of Awqaf & Islamic Affairs (Habous API).
+
+### 🌟 Features
+- **Official Prayer Times**: Fetched live from the Moroccan Ministry of Awqaf & Islamic Affairs (Habous API).
+- **Iqama Countdown**: Dynamic countdown until congregation prayer with customizable per-prayer delays.
+- **Auto-Lock Screen**: Automatically invokes `ft_lock` when the Iqama countdown reaches zero.
+- **Audio Adhan**: Plays `adan.mp3` asynchronously with desktop notification upon Adhan time.
+- **Custom Panel Icon**: Features a clean SVG mosque icon (`mosque_white.svg`) in the top panel.
+- **Preferences UI**: GTK4 / Libadwaita preferences window to configure city, language, and Iqama delays.
 
 ---
 
@@ -11,9 +19,11 @@ salat-gnome-extension/
 ├── Makefile             # Build, compile, install, check & package commands
 ├── tsconfig.json        # TypeScript compiler configuration
 ├── README.md            # Documentation
-├── dist/                # Pre-compiled JavaScript extension files (installed directly by GNOME)
-└── src/                 # Extension TypeScript Source Directory (for development)
-    ├── metadata.json    # Extension metadata
+├── dist/legacy/         # Pre-compiled JavaScript extension files (for GNOME Shell 42.9)
+├── adan.mp3             # Adhan audio asset
+├── mosque_white.svg     # Top panel status icon
+└── src/                 # Extension TypeScript Source Directory
+    ├── metadata.json    # Extension metadata (GNOME 42 / 42.9)
     ├── types.d.ts       # GJS & GNOME Shell ambient TypeScript definitions
     ├── constants.ts     # City list, default delays & icons
     ├── i18n.ts          # Internationalization (EN, AR, FR)
@@ -31,13 +41,13 @@ salat-gnome-extension/
 
 | Command | Description |
 | :--- | :--- |
-| `make install` | Install pre-compiled JavaScript extension directly to `~/.local/share/gnome-shell/extensions/` (no TypeScript required) |
-| `make compile` | Compile TypeScript (`src/*.ts`) into JavaScript (`dist/*.js`) if modifying source code |
+| `make install` | Install extension for GNOME Shell 42.9 directly to `~/.local/share/gnome-shell/extensions/` |
+| `make compile` | Compile TypeScript source code and build for GNOME Shell 42.9 |
 | `make check` | Run JavaScript syntax check across all compiled modules |
 | `make prefs` | Open extension Preferences Settings window directly |
 | `make uninstall` | Disable and remove extension from system |
-| `make pack` | Create `.zip` bundle from `dist/` for GNOME Extensions submission |
-| `make clean` | Remove `dist/` build artifacts |
+| `make pack` | Create `salat-timer@moroccan-habous.zip` bundle for GNOME Shell 42.9 |
+| `make clean` | Remove `dist/` and `.zip` build artifacts |
 | `make re` | Clean, compile, check, and reinstall extension |
 
 ---
@@ -51,7 +61,6 @@ salat-gnome-extension/
 
 2. **Reload GNOME Shell**:
    - **X11**: Press `Alt + F2`, type `r`, and hit `Enter` (or run `kill -HUP $(pgrep gnome-shell | xargs)`).
-   - **Wayland**: Log out and log back in.
 
 3. **Enable the extension explicitly**:
    ```bash

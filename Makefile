@@ -1,79 +1,72 @@
 # ==============================================================================
 # Moroccan Salat & Iqama GNOME Extension Makefile
-# Dual Target Support: Legacy (GNOME 42-44) & ESM (GNOME 45+)
+# Target: GNOME Shell 42.9
 # ==============================================================================
 
 UUID          := salat-timer@moroccan-habous
 EXT_DIR       := $(HOME)/.local/share/gnome-shell/extensions/$(UUID)
 DIST_DIR      := dist
-NODE          := $(shell if [ -d "$$HOME/.nvm/versions/node" ]; then ls -vd $$HOME/.nvm/versions/node/*/bin/node 2>/dev/null | tail -n 1; elif command -v node >/dev/null 2>&1; then command -v node; else echo "node"; fi)
-TSC           := $(shell if [ -f ./node_modules/.bin/tsc ]; then echo "$(NODE) ./node_modules/.bin/tsc"; elif command -v tsc >/dev/null 2>&1; then command -v tsc; else echo "npx tsc"; fi)
+NODE          := $(shell if [ -d "$$HOME/.nvm/versions/node" ]; then ls -vd $$HOME/.nvm/versions/node/*/bin/node 2>/dev/null | tail -n 1; elif command -v node >/dev/null 2>&1; then command -v node; else echo ""; fi)
+TSC_BIN       := $(shell if [ -f ./node_modules/.bin/tsc ]; then echo "./node_modules/.bin/tsc"; elif command -v tsc >/dev/null 2>&1; then command -v tsc; elif [ -d "$$HOME/.nvm/versions/node" ]; then ls -vd $$HOME/.nvm/versions/node/*/bin/tsc 2>/dev/null | tail -n 1; else echo ""; fi)
+HAS_TSC       := $(if $(TSC_BIN),1,0)
 
-# Detect host system GNOME major version (e.g., 42, 45, 46)
-GNOME_VER_RAW := $(shell gnome-shell --version 2>/dev/null | grep -oE '[0-9]+' | head -n 1)
-GNOME_VER     := $(if $(GNOME_VER_RAW),$(GNOME_VER_RAW),42)
+# Targeted specifically for GNOME 42.9
+GNOME_VER     := 42.9
 
-.PHONY: all compile compile-legacy compile-esm compile-all build install run nested uninstall prefs pack check logs clean help re
+.PHONY: all compile compile-legacy compile-esm compile-all build install run nested uninstall prefs pack check logs clean distclean help re
 
 all: install
 
-# Run target: compiles, installs, toggles extension enable/disable for live refresh
+# Run target: compiles (if TS present) or uses pre-compiled JS, installs, and refreshes
 run: compile install
 	@echo " 🚀 Extension ready and enabled!"
 
-# Run in a nested Wayland GNOME Shell window (ideal for Wayland extension dev/testing)
-nested: compile
-	@echo " 🚀 Installing and launching nested GNOME Shell instance on Wayland..."
-	@mkdir -p "$(EXT_DIR)"
-	@if [ $(GNOME_VER) -ge 45 ]; then \
-		cp -r $(DIST_DIR)/esm/* "$(EXT_DIR)/" ; \
-	else \
-		cp -r $(DIST_DIR)/legacy/* "$(EXT_DIR)/" ; \
-	fi
-	@dbus-run-session gnome-shell --nested --wayland
 
-# Compile ESM TS sources for GNOME 45+
+# Compile TS sources to ESM intermediate build
 compile-esm:
-	@echo " 🔨 Compiling ESM TypeScript sources (GNOME 45+)..."
+	@echo " 🔨 Compiling TypeScript sources..."
 	@mkdir -p $(DIST_DIR)/esm
-	@$(TSC) -p tsconfig.esm.json
+	@if [ -n "$(NODE)" ] && [ -f ./node_modules/.bin/tsc ]; then \
+		$(NODE) ./node_modules/.bin/tsc -p tsconfig.esm.json ; \
+	elif command -v tsc >/dev/null 2>&1; then \
+		tsc -p tsconfig.esm.json ; \
+	elif [ -n "$(TSC_BIN)" ] && [ -n "$(NODE)" ]; then \
+		$(NODE) $(TSC_BIN) -p tsconfig.esm.json ; \
+	else \
+		npx tsc -p tsconfig.esm.json ; \
+	fi
 	@cp -f src/metadata.json $(DIST_DIR)/esm/
 	@cp -f mosque_white.svg $(DIST_DIR)/esm/ 2>/dev/null || cp -f src/mosque_white.svg $(DIST_DIR)/esm/
 	@cp -f src/adan.mp3 $(DIST_DIR)/esm/ 2>/dev/null || cp -f src/adan.mp3 $(DIST_DIR)/esm/
-	@echo "✔ ESM compilation successful!"
+	@echo "✔ TS compilation successful!"
 
-# Transpile ESM build to Legacy JS for GNOME 42-44
+# Build for GNOME Shell 42.9
 compile-legacy: compile-esm
-	@$(NODE) scripts/transpile-legacy.js
+	@$(if $(NODE),$(NODE),node) scripts/transpile-legacy.js
 
-# Compile both target outputs
-compile-all: compile-esm compile-legacy
-
-# Dynamically compile for host system's GNOME version
+# Compile TS if TypeScript is present; otherwise gracefully fallback to pre-compiled JS
 compile:
-	@if [ $(GNOME_VER) -ge 45 ]; then \
-		echo " 🔍 Detected GNOME $(GNOME_VER) (Modern ESM)"; \
-		$(MAKE) compile-esm ; \
-	else \
-		echo " 🔍 Detected GNOME $(GNOME_VER) (Legacy GJS)"; \
+	@if [ "$(HAS_TSC)" = "1" ] && [ -n "$(NODE)" ]; then \
 		$(MAKE) compile-legacy ; \
+	elif [ -f "$(DIST_DIR)/legacy/extension.js" ]; then \
+		echo " ℹ TypeScript not installed on host machine. Using pre-compiled JavaScript in dist/legacy/..." ; \
+	else \
+		echo "❌ Error: TypeScript (tsc) is required to build from source, but was not found." ; \
+		echo "   Please install dependencies with 'npm install' or provide pre-compiled files in dist/legacy/." ; \
+		exit 1 ; \
 	fi
 
 build: compile
 
-# Install JavaScript extension matching host GNOME version
+# Install extension for GNOME Shell 42.9 (No TypeScript or Node required)
 install:
-	@if [ ! -d "$(DIST_DIR)" ]; then \
-		echo "❌ Error: '$(DIST_DIR)' directory not found. Please run 'make compile' first."; \
+	@if [ ! -d "$(DIST_DIR)/legacy" ]; then \
+		echo "❌ Error: '$(DIST_DIR)/legacy' directory not found. Please run 'make compile' first."; \
 		exit 1; \
 	fi
-	@echo " 🚀 Installing extension from dist/ to $(EXT_DIR)..."
+	@echo " 🚀 Installing extension from $(DIST_DIR)/legacy to $(EXT_DIR)..."
 	@mkdir -p "$(EXT_DIR)"
-	@if [ $(GNOME_VER) -ge 45 ]; then \
-		cp -r $(DIST_DIR)/esm/* "$(EXT_DIR)/" ; \
-	else \
-		cp -r $(DIST_DIR)/legacy/* "$(EXT_DIR)/" ; \
-	fi
+	@cp -r $(DIST_DIR)/legacy/* "$(EXT_DIR)/"
 	@echo " 🔄 Refreshing extension state..."
 	@if command -v gnome-extensions > /dev/null 2>&1; then \
 		gnome-extensions disable $(UUID) 2>/dev/null || true; \
@@ -106,32 +99,27 @@ uninstall:
 	@rm -rf "$(EXT_DIR)"
 	@echo "✔ Extension uninstalled."
 
-# Package separate zips for Legacy and ESM
-pack: compile-all check
-	@echo " 📦 Packaging zip bundles for Legacy and ESM..."
+# Package zip bundle for GNOME 42.9
+pack: compile check
+	@echo " 📦 Packaging extension zip bundle for GNOME 42.9..."
 	@if command -v gnome-extensions > /dev/null 2>&1; then \
 		gnome-extensions pack $(DIST_DIR)/legacy --force --out-dir=. --extra-source=metadata.json --extra-source=mosque_white.svg --extra-source=adan.mp3 ; \
-		mv -f $(UUID).shell-extension.zip $(UUID).legacy.zip 2>/dev/null || true ; \
-		gnome-extensions pack $(DIST_DIR)/esm --force --out-dir=. --extra-source=metadata.json --extra-source=mosque_white.svg --extra-source=adan.mp3 ; \
-		mv -f $(UUID).shell-extension.zip $(UUID).esm.zip 2>/dev/null || true ; \
+		cp -f $(UUID).shell-extension.zip $(UUID).zip 2>/dev/null || true ; \
 	else \
-		(cd $(DIST_DIR)/legacy && zip -r "../../$(UUID).legacy.zip" .) ; \
-		(cd $(DIST_DIR)/esm && zip -r "../../$(UUID).esm.zip" .) ; \
+		(cd $(DIST_DIR)/legacy && zip -r "../../$(UUID).zip" .) ; \
 	fi
-	@echo "✔ Created $(UUID).legacy.zip (GNOME 42-44)"
-	@echo "✔ Created $(UUID).esm.zip (GNOME 45+)"
+	@echo "✔ Created $(UUID).zip (GNOME Shell 42.9)"
 
-# Check JavaScript syntax across compiled source files
+# Check JavaScript syntax across compiled source files (if node is available)
 check:
-	@if [ -d "$(DIST_DIR)" ]; then \
-		echo " 🔍 Checking compiled JS syntax for Legacy & ESM..."; \
+	@if [ -n "$(NODE)" ] && [ -d "$(DIST_DIR)/legacy" ]; then \
+		echo " 🔍 Checking compiled JS syntax for GNOME 42.9..."; \
 		for f in $(DIST_DIR)/legacy/*.js; do \
 			[ -f "$$f" ] && $(NODE) -c "$$f" || exit 1; \
 		done; \
-		for f in $(DIST_DIR)/esm/*.js; do \
-			[ -f "$$f" ] && $(NODE) --input-type=module -c "$$(cat $$f)" > /dev/null 2>&1 || true; \
-		done; \
-		echo "✔ All compiled JS files passed syntax check!"; \
+		echo "✔ Compiled JS files passed syntax check!"; \
+	else \
+		echo " ℹ Skipping JS syntax check (Node.js check optional)."; \
 	fi
 
 # Display live extension logs from systemd journalctl
@@ -139,24 +127,27 @@ logs:
 	@echo " 📜 Tailing live SalatExtension logs (Ctrl+C to stop)..."
 	@journalctl -f -o cat /usr/bin/gnome-shell | grep --line-buffered -i "SalatExtension"
 
-# Clean build artifacts
+# Clean build artifacts (preserves dist/legacy so install works without TS)
 clean:
+	@rm -rf $(DIST_DIR)/esm *.zip
+	@echo "✔ Cleaned transient build artifacts."
+
+# Full clean including dist/
+distclean:
 	@rm -rf $(DIST_DIR) *.zip
-	@echo "✔ Cleaned build artifacts."
+	@echo "✔ Cleaned all build artifacts and dist directory."
 
 help:
-	@echo "Available Makefile targets:"
-	@echo "  make run           - Compile, install, and enable extension for current session"
-	@echo "  make nested        - Launch nested GNOME Shell window (ideal for testing on Wayland)"
-	@echo "  make install       - Install compiled extension from dist/ and refresh state"
-	@echo "  make compile       - Auto-detect GNOME version & compile TS to JS"
-	@echo "  make compile-all   - Compile both Legacy (GNOME 42-44) and ESM (GNOME 45+)"
-	@echo "  make pack          - Package separate .zip files for Legacy and ESM"
-	@echo "  make check         - Verify syntax across both Legacy and ESM builds"
+	@echo "Available Makefile targets for GNOME Shell 42.9:"
+	@echo "  make install       - Install pre-compiled extension to ~/.local/share/gnome-shell/extensions/ (Zero dependencies, no TypeScript needed)"
+	@echo "  make run           - Install & activate extension for current session"
+	@echo "  make compile       - Compile TypeScript if available, or verify pre-compiled JS"
+	@echo "  make pack          - Package .zip file for GNOME Shell 42.9"
+	@echo "  make check         - Verify syntax across compiled JavaScript files"
 	@echo "  make prefs         - Open extension Preferences window"
 	@echo "  make uninstall     - Remove extension"
-	@echo "  make clean         - Remove build artifacts"
-	@echo "  make re            - Clean, compile-all, check, and reinstall"
+	@echo "  make clean         - Remove transient build artifacts"
+	@echo "  make re            - Clean, compile, check, and reinstall"
 
-re: clean compile-all check install
-	@echo "✔ Rebuilt and reinstalled extension."
+re: clean compile check install
+	@echo "✔ Rebuilt and reinstalled extension for GNOME Shell 42.9."
