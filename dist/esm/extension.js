@@ -1,13 +1,16 @@
 /// <reference path="./types.d.ts" />
+import Clutter from 'gi://Clutter';
+import GLib from 'gi://GLib';
+import Gio from 'gi://Gio';
+import St from 'gi://St';
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
-import St from 'gi://St';
-import Clutter from 'gi://Clutter';
-import GLib from 'gi://GLib';
-import * as Constants from './constants.js';
-import * as Config from './config.js';
 import * as Api from './api.js';
+import * as Calculator from './calculator.js';
+import * as Config from './config.js';
+import * as Constants from './constants.js';
+import * as I18n from './i18n.js';
 import * as UI from './ui.js';
 export default class SalatExtension extends Extension {
     indicator = null;
@@ -16,6 +19,8 @@ export default class SalatExtension extends Extension {
     config = null;
     configMonitor = null;
     prayerTimesData = null;
+    triggeredAdhans = {};
+    triggeredIqamas = {};
     enable() {
         log('[SalatExtension ESM] Enabling extension...');
         try {
@@ -40,6 +45,7 @@ export default class SalatExtension extends Extension {
                 }
                 else if (this.config) {
                     UI.updatePanelText(this.indicator, this.prayerTimesData, this.config.iqamaDelays, this.config.lang);
+                    this.checkPrayerEvents(now);
                 }
                 return GLib.SOURCE_CONTINUE;
             });
@@ -120,18 +126,6 @@ export default class SalatExtension extends Extension {
                         Config.saveConfig(this.config);
                     }
                     this.recreatePanelIndicator();
-                },
-                onClose: () => {
-                    log('[SalatExtension ESM] Close clicked. Hiding indicator.');
-                    if (this.indicator) {
-                        this.indicator.destroy();
-                        this.indicator = null;
-                    }
-                    this.destroyOldStatusAreaRole();
-                    if (this.timeoutId) {
-                        GLib.source_remove(this.timeoutId);
-                        this.timeoutId = 0;
-                    }
                 }
             });
             log('[SalatExtension ESM] UI sync completed successfully.');
@@ -154,6 +148,28 @@ export default class SalatExtension extends Extension {
             log('[SalatExtension ESM] Failed to fetch prayer times: ' + err.message);
         });
     }
+    getIconFile() {
+        try {
+            if (this.dir) {
+                let file = this.dir.get_child('mosque_white.svg');
+                if (file.query_exists(null))
+                    return file;
+            }
+            if (this.path) {
+                let path = GLib.build_filenamev([this.path, 'mosque_white.svg']);
+                let file = Gio.File.new_for_path(path);
+                if (file.query_exists(null))
+                    return file;
+            }
+            let curFile = Gio.File.new_for_path(GLib.build_filenamev([GLib.get_current_dir(), 'mosque_white.svg']));
+            if (curFile.query_exists(null))
+                return curFile;
+        }
+        catch (e) {
+            log('[SalatExtension ESM] Error locating mosque_white.svg: ' + e.message);
+        }
+        return null;
+    }
     recreatePanelIndicator() {
         log('[SalatExtension ESM] Rebuilding panel indicator from scratch...');
         try {
@@ -163,11 +179,26 @@ export default class SalatExtension extends Extension {
             }
             this.destroyOldStatusAreaRole();
             this.indicator = new PanelMenu.Button(0.0, "Salat & Iqama Indicator", false);
-            this.indicator.buttonText = new St.Label({
-                text: "🕌 Loading Salat...",
+            let box = new St.BoxLayout({
+                style_class: 'panel-status-indicators-box',
                 y_align: Clutter.ActorAlign.CENTER
             });
-            this.indicator.add_child(this.indicator.buttonText);
+            let iconFile = this.getIconFile();
+            if (iconFile) {
+                let gicon = Gio.FileIcon.new(iconFile);
+                this.indicator.icon = new St.Icon({
+                    gicon: gicon,
+                    style_class: 'system-status-icon',
+                    icon_size: 16
+                });
+                box.add_child(this.indicator.icon);
+            }
+            this.indicator.buttonText = new St.Label({
+                text: I18n.t('loading', this.config ? this.config.lang : 'auto'),
+                y_align: Clutter.ActorAlign.CENTER
+            });
+            box.add_child(this.indicator.buttonText);
+            this.indicator.add_child(box);
             try {
                 Main.panel.addToStatusArea('salat-indicator', this.indicator, 0, 'right');
                 log('[SalatExtension ESM] Added indicator to statusArea with role salat-indicator.');
@@ -182,6 +213,98 @@ export default class SalatExtension extends Extension {
         }
         catch (e) {
             log('[SalatExtension ESM] Error recreating panel indicator: ' + e.message);
+        }
+    }
+    getAdhanAudioPath() {
+        try {
+            if (this.dir) {
+                let file = this.dir.get_child('adan.mp3');
+                if (file.query_exists(null))
+                    return file.get_path();
+            }
+            if (this.path) {
+                let p = GLib.build_filenamev([this.path, 'adan.mp3']);
+                if (GLib.file_test(p, GLib.FileTest.EXISTS))
+                    return p;
+            }
+            let cur = GLib.build_filenamev([GLib.get_current_dir(), 'adan.mp3']);
+            if (GLib.file_test(cur, GLib.FileTest.EXISTS))
+                return cur;
+        }
+        catch (e) {
+            log('[SalatExtension ESM] Error finding adan.mp3: ' + e.message);
+        }
+        return null;
+    }
+    playAdhanSound() {
+        const audioPath = this.getAdhanAudioPath();
+        if (!audioPath) {
+            log('[SalatExtension ESM] Cannot play adhan: adan.mp3 not found.');
+            return;
+        }
+        log('[SalatExtension ESM]  Triggering Adhan audio playback: ' + audioPath);
+        try {
+            GLib.spawn_command_line_async('notify-send "Salat Timer" " Adhan time!"');
+            if (GLib.find_program_in_path('cvlc')) {
+                GLib.spawn_command_line_async(`cvlc --play-and-exit --no-video "${audioPath}"`);
+            }
+            else if (GLib.find_program_in_path('pw-play')) {
+                GLib.spawn_command_line_async(`pw-play "${audioPath}"`);
+            }
+            else if (GLib.find_program_in_path('paplay')) {
+                GLib.spawn_command_line_async(`paplay "${audioPath}"`);
+            }
+            else {
+                const pyScript = `import gi, sys; gi.require_version('Gst', '1.0'); from gi.repository import Gst, GLib; Gst.init(None); p = Gst.ElementFactory.make('playbin', 'p'); p.set_property('uri', 'file://' + sys.argv[1]); p.set_state(Gst.State.PLAYING); loop = GLib.MainLoop(); b = p.get_bus(); b.add_watch(GLib.PRIORITY_DEFAULT, lambda bus, msg: loop.quit() if msg.type in (Gst.MessageType.EOS, Gst.MessageType.ERROR) else True); loop.run()`;
+                GLib.spawn_command_line_async(`python3 -c "${pyScript}" "${audioPath}"`);
+            }
+        }
+        catch (e) {
+            log('[SalatExtension ESM] Audio playback failed: ' + e.message);
+        }
+    }
+    runFtLock() {
+        log('[SalatExtension ESM] 🔒 Iqama finished! Triggering ft_lock...');
+        try {
+            GLib.spawn_command_line_async('notify-send -u critical "Salat Timer" "🔒 Iqama finished! Locking screen via ft_lock..."');
+            if (GLib.find_program_in_path('ft_lock')) {
+                GLib.spawn_command_line_async('ft_lock');
+            }
+            else if (GLib.file_test('/usr/share/42/ft_lock', GLib.FileTest.IS_EXECUTABLE)) {
+                GLib.spawn_command_line_async('/usr/share/42/ft_lock');
+            }
+            else if (GLib.file_test('/usr/local/bin/ft_lock', GLib.FileTest.IS_EXECUTABLE)) {
+                GLib.spawn_command_line_async('/usr/local/bin/ft_lock');
+            }
+        }
+        catch (e) {
+            log('[SalatExtension ESM] Error executing ft_lock: ' + e.message);
+        }
+    }
+    checkPrayerEvents(now) {
+        if (!this.prayerTimesData || !this.config)
+            return;
+        const prayers = Calculator.getPrayerEntries(this.prayerTimesData, this.config.iqamaDelays, this.config.lang, now);
+        const datePrefix = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+        for (let p of prayers) {
+            const adhanKey = `${datePrefix}_${p.key}_adhan`;
+            const iqamaKey = `${datePrefix}_${p.key}_iqama`;
+            // 1. Adhan Trigger: now >= adhanDate (within a 30s window to handle system lag/sleep)
+            const adhanDiff = now.getTime() - p.adhanDate.getTime();
+            if (adhanDiff >= 0 && !this.triggeredAdhans[adhanKey]) {
+                this.triggeredAdhans[adhanKey] = true;
+                if (adhanDiff <= 30000) { // Only fire if current time is within 30s of Adhan
+                    this.playAdhanSound();
+                }
+            }
+            // 2. Iqama Finish Trigger: now >= iqamaDate
+            const iqamaDiff = now.getTime() - p.iqamaDate.getTime();
+            if (iqamaDiff >= 0 && !this.triggeredIqamas[iqamaKey]) {
+                this.triggeredIqamas[iqamaKey] = true;
+                if (iqamaDiff <= 30000) { // Only fire if current time is within 30s of Iqama finish
+                    this.runFtLock();
+                }
+            }
         }
     }
 }

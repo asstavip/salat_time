@@ -6,7 +6,8 @@
 UUID          := salat-timer@moroccan-habous
 EXT_DIR       := $(HOME)/.local/share/gnome-shell/extensions/$(UUID)
 DIST_DIR      := dist
-TSC           := $(shell if [ -f ./node_modules/.bin/tsc ]; then echo ./node_modules/.bin/tsc; elif command -v tsc >/dev/null 2>&1; then command -v tsc; else echo "npx tsc"; fi)
+NODE          := $(shell if [ -d "$$HOME/.nvm/versions/node" ]; then ls -vd $$HOME/.nvm/versions/node/*/bin/node 2>/dev/null | tail -n 1; elif command -v node >/dev/null 2>&1; then command -v node; else echo "node"; fi)
+TSC           := $(shell if [ -f ./node_modules/.bin/tsc ]; then echo "$(NODE) ./node_modules/.bin/tsc"; elif command -v tsc >/dev/null 2>&1; then command -v tsc; else echo "npx tsc"; fi)
 
 # Detect host system GNOME major version (e.g., 42, 45, 46)
 GNOME_VER_RAW := $(shell gnome-shell --version 2>/dev/null | grep -oE '[0-9]+' | head -n 1)
@@ -37,11 +38,13 @@ compile-esm:
 	@mkdir -p $(DIST_DIR)/esm
 	@$(TSC) -p tsconfig.esm.json
 	@cp -f src/metadata.json $(DIST_DIR)/esm/
+	@cp -f mosque_white.svg $(DIST_DIR)/esm/ 2>/dev/null || cp -f src/mosque_white.svg $(DIST_DIR)/esm/
+	@cp -f src/adan.mp3 $(DIST_DIR)/esm/ 2>/dev/null || cp -f src/adan.mp3 $(DIST_DIR)/esm/
 	@echo "✔ ESM compilation successful!"
 
 # Transpile ESM build to Legacy JS for GNOME 42-44
 compile-legacy: compile-esm
-	@node scripts/transpile-legacy.js
+	@$(NODE) scripts/transpile-legacy.js
 
 # Compile both target outputs
 compile-all: compile-esm compile-legacy
@@ -107,9 +110,9 @@ uninstall:
 pack: compile-all check
 	@echo " 📦 Packaging zip bundles for Legacy and ESM..."
 	@if command -v gnome-extensions > /dev/null 2>&1; then \
-		gnome-extensions pack $(DIST_DIR)/legacy --force --out-dir=. --extra-source=metadata.json ; \
+		gnome-extensions pack $(DIST_DIR)/legacy --force --out-dir=. --extra-source=metadata.json --extra-source=mosque_white.svg --extra-source=adan.mp3 ; \
 		mv -f $(UUID).shell-extension.zip $(UUID).legacy.zip 2>/dev/null || true ; \
-		gnome-extensions pack $(DIST_DIR)/esm --force --out-dir=. --extra-source=metadata.json ; \
+		gnome-extensions pack $(DIST_DIR)/esm --force --out-dir=. --extra-source=metadata.json --extra-source=mosque_white.svg --extra-source=adan.mp3 ; \
 		mv -f $(UUID).shell-extension.zip $(UUID).esm.zip 2>/dev/null || true ; \
 	else \
 		(cd $(DIST_DIR)/legacy && zip -r "../../$(UUID).legacy.zip" .) ; \
@@ -123,10 +126,10 @@ check:
 	@if [ -d "$(DIST_DIR)" ]; then \
 		echo " 🔍 Checking compiled JS syntax for Legacy & ESM..."; \
 		for f in $(DIST_DIR)/legacy/*.js; do \
-			[ -f "$$f" ] && node -c "$$f" || exit 1; \
+			[ -f "$$f" ] && $(NODE) -c "$$f" || exit 1; \
 		done; \
 		for f in $(DIST_DIR)/esm/*.js; do \
-			[ -f "$$f" ] && node --input-type=module -c "$$(cat $$f)" > /dev/null 2>&1 || true; \
+			[ -f "$$f" ] && $(NODE) --input-type=module -c "$$(cat $$f)" > /dev/null 2>&1 || true; \
 		done; \
 		echo "✔ All compiled JS files passed syntax check!"; \
 	fi

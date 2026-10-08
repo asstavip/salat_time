@@ -10,9 +10,9 @@ export const LANGUAGES: LanguageOption[] = [
 
 export const TRANSLATIONS: TranslationsMap = {
   en: {
-    loading: "🕌 Loading Salat...",
-    adhan_in: "🕌 {prayer} in {time}",
-    iqama_in: "📢 Iqama ({prayer}) in {time}",
+    loading: "Loading Salat...",
+    adhan_in: "{prayer} in {time}",
+    iqama_in: " Iqama ({prayer}) in {time}",
     fajr: "Fajr",
     dhuhr: "Dhuhr",
     asr: "Asr",
@@ -35,9 +35,9 @@ export const TRANSLATIONS: TranslationsMap = {
     prefs_saved_success: "✔ Saved & Applied Successfully!",
   },
   ar: {
-    loading: "🕌 جاري تحميل مواقيت الصلاة...",
-    adhan_in: "🕌 {prayer} بعد {time}",
-    iqama_in: "📢 إقامة ({prayer}) بعد {time}",
+    loading: "جاري تحميل مواقيت الصلاة...",
+    adhan_in: "{prayer} بعد {time}",
+    iqama_in: " إقامة ({prayer}) بعد {time}",
     fajr: "الفجر",
     dhuhr: "الظهر",
     asr: "العصر",
@@ -60,9 +60,9 @@ export const TRANSLATIONS: TranslationsMap = {
     prefs_saved_success: "✔ تم الحفظ والتطبيق بنجاح!",
   },
   fr: {
-    loading: "🕌 Chargement des prières...",
-    adhan_in: "🕌 {prayer} dans {time}",
-    iqama_in: "📢 Iqama ({prayer}) dans {time}",
+    loading: "Chargement des prières...",
+    adhan_in: "{prayer} dans {time}",
+    iqama_in: " Iqama ({prayer}) dans {time}",
     fajr: "Fajr",
     dhuhr: "Dhuhr",
     asr: "Asr",
@@ -94,7 +94,7 @@ export function getSystemLang(): string {
       if (loc.startsWith("fr")) return "fr";
       if (loc.startsWith("en")) return "en";
     }
-  } catch (e) {}
+  } catch (e) { }
   return "en";
 }
 

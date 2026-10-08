@@ -1,9 +1,8 @@
 /// <reference path="./types.d.ts" />
 import GLib from 'gi://GLib';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
-import * as Constants from './constants.js';
-import * as I18n from './i18n.js';
 import * as Calculator from './calculator.js';
+import * as I18n from './i18n.js';
 
 export function updatePanelText(indicator: any, prayerTimesData: PrayerTimesData | null, iqamaDelays: IqamaDelays, currentLang: string): void {
     if (!prayerTimesData || !indicator) return;
@@ -27,7 +26,8 @@ export function updatePanelText(indicator: any, prayerTimesData: PrayerTimesData
         }));
     }
 }
-
+// rebuildMenu rebuilds the menu of the indicator based on the current prayer times and user configuration.
+// It displays the prayer times, highlights the active prayer, and provides a link to open the settings window.
 export function rebuildMenu(indicator: any, config: UserConfig, prayerTimesData: PrayerTimesData | null, callbacks: any): void {
     if (!prayerTimesData || !indicator) return;
 
@@ -50,7 +50,7 @@ export function rebuildMenu(indicator: any, config: UserConfig, prayerTimesData:
     for (let p of prayers) {
         let isActive = !!active && active.prayer.key === p.key;
         let prefix = '   ';
-        if (isActive && active!.phase === 'IQAMA') prefix = '📢 ';
+        if (isActive && active!.phase === 'IQAMA') prefix = ' ';
         else if (isActive && active!.phase === 'NEXT_ADHAN') prefix = '▶ ';
 
         const iqamaH = String(p.iqamaDate.getHours()).padStart(2, '0');

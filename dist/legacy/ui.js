@@ -1,8 +1,8 @@
 
 var GLib = imports.gi.GLib;
 var PopupMenu = imports.ui.popupMenu;
-var I18n = imports.misc.extensionUtils.getCurrentExtension().imports.i18n;
 var Calculator = imports.misc.extensionUtils.getCurrentExtension().imports.calculator;
+var I18n = imports.misc.extensionUtils.getCurrentExtension().imports.i18n;
 function updatePanelText(indicator, prayerTimesData, iqamaDelays, currentLang) {
     if (!prayerTimesData || !indicator)
         return;
@@ -26,6 +26,8 @@ function updatePanelText(indicator, prayerTimesData, iqamaDelays, currentLang) {
         }));
     }
 }
+// rebuildMenu rebuilds the menu of the indicator based on the current prayer times and user configuration.
+// It displays the prayer times, highlights the active prayer, and provides a link to open the settings window.
 function rebuildMenu(indicator, config, prayerTimesData, callbacks) {
     if (!prayerTimesData || !indicator)
         return;
@@ -43,7 +45,7 @@ function rebuildMenu(indicator, config, prayerTimesData, callbacks) {
         let isActive = !!active && active.prayer.key === p.key;
         let prefix = '   ';
         if (isActive && active.phase === 'IQAMA')
-            prefix = '📢 ';
+            prefix = ' ';
         else if (isActive && active.phase === 'NEXT_ADHAN')
             prefix = '▶ ';
         const iqamaH = String(p.iqamaDate.getHours()).padStart(2, '0');

@@ -1,4 +1,4 @@
-var { St, Clutter, GLib } = imports.gi;
+var { St, Clutter, GLib, Gio } = imports.gi;
 var Main = imports.ui.main;
 var PanelMenu = imports.ui.panelMenu;
 var ExtensionUtils = imports.misc.extensionUtils;
@@ -9,6 +9,8 @@ let httpSession = null;
 let config = null;
 let configMonitor = null;
 let prayerTimesData = null;
+let triggeredAdhans = {};
+let triggeredIqamas = {};
 
 function _getModules() {
     const Me = ExtensionUtils.getCurrentExtension();
@@ -16,7 +18,9 @@ function _getModules() {
         Constants: Me.imports.constants,
         Config: Me.imports.config,
         Api: Me.imports.api,
-        UI: Me.imports.ui
+        UI: Me.imports.ui,
+        I18n: Me.imports.i18n,
+        Calculator: Me.imports.calculator
     };
 }
 
@@ -98,6 +102,121 @@ function refreshPrayerTimes() {
     );
 }
 
+function getIconFile() {
+    try {
+        const Me = ExtensionUtils.getCurrentExtension();
+        if (Me && Me.dir) {
+            let file = Me.dir.get_child('mosque_white.svg');
+            if (file.query_exists(null)) return file;
+        }
+        if (Me && Me.path) {
+            let path = GLib.build_filenamev([Me.path, 'mosque_white.svg']);
+            let file = Gio.File.new_for_path(path);
+            if (file.query_exists(null)) return file;
+        }
+        let curFile = Gio.File.new_for_path(GLib.build_filenamev([GLib.get_current_dir(), 'mosque_white.svg']));
+        if (curFile.query_exists(null)) return curFile;
+    } catch (e) {
+        log('[SalatExtension Legacy] Error locating mosque_white.svg: ' + e.message);
+    }
+    return null;
+}
+
+function getAdhanAudioPath() {
+    try {
+        const Me = ExtensionUtils.getCurrentExtension();
+        if (Me && Me.dir) {
+            let file = Me.dir.get_child('adan.mp3');
+            if (file.query_exists(null)) return file.get_path();
+        }
+        if (Me && Me.path) {
+            let p = GLib.build_filenamev([Me.path, 'adan.mp3']);
+            if (GLib.file_test(p, GLib.FileTest.EXISTS)) return p;
+        }
+        let cur = GLib.build_filenamev([GLib.get_current_dir(), 'adan.mp3']);
+        if (GLib.file_test(cur, GLib.FileTest.EXISTS)) return cur;
+    } catch (e) {
+        log('[SalatExtension Legacy] Error finding adan.mp3: ' + e.message);
+    }
+    return null;
+}
+
+function playAdhanSound() {
+    const audioPath = getAdhanAudioPath();
+    if (!audioPath) {
+        log('[SalatExtension Legacy] Cannot play adhan: adan.mp3 not found.');
+        return;
+    }
+
+    log('[SalatExtension Legacy]  Triggering Adhan audio playback: ' + audioPath);
+    try {
+        GLib.spawn_command_line_async('notify-send "Salat Timer" " Adhan time!"');
+        if (GLib.find_program_in_path('cvlc')) {
+            GLib.spawn_command_line_async('cvlc --play-and-exit --no-video "' + audioPath + '"');
+        } else if (GLib.find_program_in_path('pw-play')) {
+            GLib.spawn_command_line_async('pw-play "' + audioPath + '"');
+        } else if (GLib.find_program_in_path('paplay')) {
+            GLib.spawn_command_line_async('paplay "' + audioPath + '"');
+        } else {
+            const pyScript = 'import gi, sys; gi.require_version("Gst", "1.0"); from gi.repository import Gst, GLib; Gst.init(None); p = Gst.ElementFactory.make("playbin", "p"); p.set_property("uri", "file://" + sys.argv[1]); p.set_state(Gst.State.PLAYING); loop = GLib.MainLoop(); b = p.get_bus(); b.add_watch(GLib.PRIORITY_DEFAULT, lambda bus, msg: loop.quit() if msg.type in (Gst.MessageType.EOS, Gst.MessageType.ERROR) else True); loop.run()';
+            GLib.spawn_command_line_async('python3 -c "' + pyScript + '" "' + audioPath + '"');
+        }
+    } catch (e) {
+        log('[SalatExtension Legacy] Audio playback failed: ' + e.message);
+    }
+}
+
+function runFtLock() {
+    log('[SalatExtension Legacy] 🔒 Iqama finished! Triggering ft_lock...');
+    try {
+        GLib.spawn_command_line_async('notify-send -u critical "Salat Timer" "🔒 Iqama finished! Locking screen via ft_lock..."');
+        if (GLib.find_program_in_path('ft_lock')) {
+            GLib.spawn_command_line_async('ft_lock');
+        } else if (GLib.file_test('/usr/share/42/ft_lock', GLib.FileTest.IS_EXECUTABLE)) {
+            GLib.spawn_command_line_async('/usr/share/42/ft_lock');
+        } else if (GLib.file_test('/usr/local/bin/ft_lock', GLib.FileTest.IS_EXECUTABLE)) {
+            GLib.spawn_command_line_async('/usr/local/bin/ft_lock');
+        }
+    } catch (e) {
+        log('[SalatExtension Legacy] Error executing ft_lock: ' + e.message);
+    }
+}
+
+function checkPrayerEvents(now) {
+    if (!prayerTimesData || !config) return;
+    const { Calculator } = _getModules();
+
+    const prayers = Calculator.getPrayerEntries(
+        prayerTimesData,
+        config.iqamaDelays,
+        config.lang,
+        now
+    );
+
+    const datePrefix = now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate();
+
+    for (let p of prayers) {
+        const adhanKey = datePrefix + '_' + p.key + '_adhan';
+        const iqamaKey = datePrefix + '_' + p.key + '_iqama';
+
+        const adhanDiff = now.getTime() - p.adhanDate.getTime();
+        if (adhanDiff >= 0 && !triggeredAdhans[adhanKey]) {
+            triggeredAdhans[adhanKey] = true;
+            if (adhanDiff <= 30000) {
+                playAdhanSound();
+            }
+        }
+
+        const iqamaDiff = now.getTime() - p.iqamaDate.getTime();
+        if (iqamaDiff >= 0 && !triggeredIqamas[iqamaKey]) {
+            triggeredIqamas[iqamaKey] = true;
+            if (iqamaDiff <= 30000) {
+                runFtLock();
+            }
+        }
+    }
+}
+
 function recreatePanelIndicator() {
     log('[SalatExtension Legacy] Rebuilding panel indicator from scratch...');
     try {
@@ -108,11 +227,31 @@ function recreatePanelIndicator() {
         destroyOldStatusAreaRole();
 
         indicator = new PanelMenu.Button(0.0, "Salat & Iqama Indicator", false);
-        indicator.buttonText = new St.Label({
-            text: "🕌 Loading Salat...",
+
+        let box = new St.BoxLayout({
+            style_class: 'panel-status-indicators-box',
             y_align: Clutter.ActorAlign.CENTER
         });
-        indicator.add_child(indicator.buttonText);
+
+        let iconFile = getIconFile();
+        if (iconFile) {
+            let gicon = Gio.FileIcon.new(iconFile);
+            indicator.icon = new St.Icon({
+                gicon: gicon,
+                style_class: 'system-status-icon',
+                icon_size: 16
+            });
+            box.add_child(indicator.icon);
+        }
+
+        const { I18n } = _getModules();
+        indicator.buttonText = new St.Label({
+            text: I18n.t('loading', config ? config.lang : 'auto'),
+            y_align: Clutter.ActorAlign.CENTER
+        });
+        box.add_child(indicator.buttonText);
+
+        indicator.add_child(box);
 
         try {
             Main.panel.addToStatusArea('salat-indicator', indicator, 0, 'right');
@@ -162,6 +301,7 @@ function enable() {
                 refreshPrayerTimes();
             } else if (config) {
                 UI.updatePanelText(indicator, prayerTimesData, config.iqamaDelays, config.lang);
+                checkPrayerEvents(now);
             }
             return GLib.SOURCE_CONTINUE;
         });
